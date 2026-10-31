@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Micro-Rogue: The Endless Tower</title>
+<title>Obsidian Vault — The Endless Descent</title>
 <style>
 /* ============================================
    CSS VARIABLES & RESET
@@ -446,15 +446,115 @@ body {
   .action-buttons { flex-direction: column; align-items: center; }
   .btn { width: 100%; max-width: 240px; justify-content: center; }
 }
+
+/* =============================================================
+   OBSIDIAN VAULT — VISUAL THEME (presentation only)
+   ============================================================= */
+:root {
+  --bg-primary:#0b0e13; --bg-secondary:#151922; --bg-tertiary:#202530;
+  --bg-card:#272c37; --border-color:#3a3940;
+  --text-primary:#f0e9dc; --text-secondary:#b2adb0; --text-muted:#898690;
+  --accent-red:#c45c5b; --accent-green:#78b79b; --accent-blue:#8aafd2;
+  --accent-yellow:#d6b67e; --accent-purple:#b49ccf; --accent-orange:#d9a26f;
+  --hp-bar-bg:#3b222a; --xp-bar-bg:#253345; --xp-bar-fill:#8aafd2;
+  --radius:9px; --radius-lg:16px;
+  --shadow:0 22px 75px rgba(0,0,0,.6);
+}
+body {
+  background:radial-gradient(ellipse 75% 48% at 50% -5%,#302a31 0%,transparent 80%),
+             radial-gradient(ellipse 55% 55% at 90% 100%,#1d2530 0%,transparent 75%),#0b0e13;
+  font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+  padding:clamp(10px,3vw,36px) 12px 45px;
+}
+#game-container {max-width:680px;border:1px solid #62513f;border-radius:17px;
+  background:#151922;box-shadow:0 0 0 5px rgba(0,0,0,.13),0 28px 85px rgba(0,0,0,.62);}
+.vault-brand {display:flex;align-items:center;gap:15px;padding:20px 24px 17px;
+  background:linear-gradient(145deg,#29262a,#191c25 70%);border-bottom:1px solid #66523e;}
+.brand-emblem {width:46px;height:46px;flex:none;display:grid;place-items:center;color:#e1c38d;
+  border:1px solid #8e7554;transform:rotate(45deg);font-size:25px;background:#2d292a;}
+.brand-emblem::first-letter {transform:rotate(-45deg)}
+.vault-brand h1 {font-family:Georgia,'Times New Roman',serif;font-size:clamp(20px,4.6vw,29px);letter-spacing:2.2px;
+  color:#f2e5cc;font-weight:700;line-height:1.15;}
+.vault-brand h1 span {color:#d5ae70}.vault-brand p {font-size:10px;letter-spacing:3px;color:#a69b92;margin-top:5px;}
+.brand-rune {margin-left:auto;color:#a18b67;font-size:27px;opacity:.75}
+#hud {background:linear-gradient(180deg,#20242c,#1a1e27);padding:17px 22px;border-bottom:1px solid #383640;}
+.hud-row {margin-bottom:11px;gap:14px}.hud-label {min-width:107px;color:#b7a991;font-size:10px;font-weight:700;letter-spacing:1.15px;}
+.hud-stat {background:#11151d;border:1px solid #3b3b43;padding:7px 12px;border-radius:7px;color:#e6d9c6;font-weight:650;}
+.hp-bar-outer,.xp-bar-outer {background:#30212a;border:1px solid #514047;height:14px;border-radius:4px;}
+.xp-bar-outer {background:#1f2a38;border-color:#384758;height:10px;}
+.hp-bar-inner {background:linear-gradient(90deg,#893d43,#d36a65);border-radius:3px;}
+.xp-bar-inner {background:linear-gradient(90deg,#496d99,#94b7d9);border-radius:3px;}
+.hp-text,.xp-text {font-variant-numeric:tabular-nums;color:#d6c7ba;}
+#floor-indicator {padding:14px 20px 16px;background:#171b24;border-bottom:1px solid #393840;}
+.floor-kicker {font-size:9px;letter-spacing:2.8px;color:#967e5e;margin-bottom:6px;}
+#floor-room-text {font-family:Georgia,serif;font-size:17px;color:#e2cba7;}
+.room-dots {gap:6px;margin-top:12px;}.room-dot {width:auto;flex:1;max-width:35px;height:9px;border-radius:3px;background:#303640;border:1px solid #47434a;}
+.room-dot.completed {background:#668f7a;border-color:#81b69a}.room-dot.current {background:#dfba75;border-color:#f2d19b;box-shadow:0 0 10px #d6b67e70;}
+.room-dot.boss {border-radius:3px;background:#74363c;border-color:#b35b5c;}
+.room-dot.boss.completed {background:#668f7a;border-color:#81b69a;}
+.room-dot.boss.current {background:#dfba75;border-color:#f2d19b;box-shadow:0 0 10px #d6b67e70;}
+#main-area {min-height:310px;padding:28px 22px 30px;background:radial-gradient(ellipse at 50% 25%,#242631 0%,#181c25 68%);}
+#main-area.scene-enter {animation:sceneReveal .28s ease-out both}
+@keyframes sceneReveal {from{opacity:.35;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.scene-icon {font-size:52px;filter:drop-shadow(0 5px 14px #0009);margin-bottom:15px;}
+.scene-title {font-family:Georgia,serif;font-size:24px;color:#ead3a8;letter-spacing:.3px;}
+.scene-desc {color:#bcb3af;line-height:1.7;}
+.enemy-display {max-width:470px;background:linear-gradient(155deg,#262630,#1a1e28);
+  border:1px solid #655044;padding:19px 22px 20px;box-shadow:inset 0 1px #ffffff0a,0 12px 30px #0003;}
+.enemy-eyebrow {font-size:10px;letter-spacing:2.2px;font-weight:800;color:#d99b8a;margin-bottom:10px;}
+.enemy-portrait {height:118px;max-width:210px;margin:0 auto 14px;display:grid;place-items:center;
+  background:radial-gradient(ellipse at 50% 55%,#6e3c40 0%,#392a34 30%,transparent 71%);}
+.enemy-portrait span {font-family:Georgia,serif;font-size:84px;line-height:1;color:#d6bcb0;
+  filter:drop-shadow(0 6px 8px #000b);animation:enemyHover 3.5s ease-in-out infinite;}
+@keyframes enemyHover {50%{transform:translateY(-5px)}}
+.enemy-name {font-family:Georgia,serif;color:#f0d7c5;font-size:23px;margin-bottom:10px;}
+.enemy-stats {display:flex;justify-content:center;gap:10px;margin-bottom:17px;}
+.enemy-stats span {background:#161922;border:1px solid #48404a;color:#cfc1ba;border-radius:5px;padding:5px 11px;font-size:11px;font-weight:700;}
+.enemy-health-label {display:flex;justify-content:space-between;color:#c9aaa5;font-size:10px;letter-spacing:.7px;font-weight:700;}
+.enemy-hp-bar-outer {height:11px;background:#39232a;border:1px solid #5b383e;margin-top:7px;border-radius:4px;}
+.enemy-hp-bar-inner {background:linear-gradient(90deg,#8d4245,#d06a65);border-radius:3px;}
+.enemy-hp-text {color:#cbb8ae;}
+.action-buttons {max-width:470px;gap:10px;}.btn {min-height:47px;border-radius:7px;padding:12px 19px;
+  box-shadow:inset 0 1px #ffffff12,0 3px 10px #0003;letter-spacing:.3px;}
+.btn-primary {background:linear-gradient(#735b3d,#57432e);border-color:#a38558;color:#f7e9d2;}
+.btn-primary:hover:not(:disabled) {background:#866a48;border-color:#d0aa72;}
+.btn-danger {background:linear-gradient(#813e42,#683338);border-color:#ac6263;color:#fff0ea;}
+.btn-danger:hover:not(:disabled) {background:#99494e;border-color:#d88786;}
+.btn-success {background:linear-gradient(#3e6758,#2e4d43);border-color:#648d78;color:#f0fff6;}
+.btn-success:hover:not(:disabled) {background:#507c69;border-color:#91bda5;}
+.btn:not(.btn-primary):not(.btn-danger):not(.btn-success) {background:#292c36;border-color:#53505a;}
+.btn:focus-visible,.upgrade-btn:focus-visible,.modal-option-btn:focus-visible {outline:2px solid #e2c18d;outline-offset:3px;}
+.log-heading {display:flex;justify-content:space-between;padding:11px 19px;background:#131720;border-top:1px solid #3e3a40;
+  font-size:10px;font-weight:800;letter-spacing:1.5px;color:#c8ac80;}
+.log-live {color:#7daa8e;font-size:9px;letter-spacing:1px;}
+#log-area {background:#11151c;border-top:1px solid #282b32;padding:9px 19px 15px;max-height:155px;}
+.log-entry {font-size:12px;padding:6px 0;border-color:#2c3038;line-height:1.55;}
+.log-entry.combat {color:#dfac8e}.log-entry.loot {color:#e3c080}.log-entry.heal {color:#91c5a8}
+.log-entry.info {color:#a6a5ac}.log-entry.boss {color:#e58c89}.log-entry.levelup {color:#c3a9e5}
+.modal-box {background:linear-gradient(160deg,#292833,#191d26);border-color:#846b4b;box-shadow:0 22px 90px #000b;}
+.modal-box h2 {font-family:Georgia,serif;color:#e7c88e}.upgrade-btn,.modal-option-btn {background:#232832;border-color:#4a454b;color:#f0e9dc;}
+.upgrade-btn:hover,.modal-option-btn:hover {border-color:#d4b37d;background:#30303a;}
+.merchant-info,.go-stats {background:#1b2029;border:1px solid #4a4443;}
+.go-title {font-family:Georgia,serif;color:#e4a29c}.high-score-msg {color:#e7c88e}
+@media(max-width:480px){body{padding:7px 7px 24px}.vault-brand{padding:16px 14px;gap:12px}.brand-emblem{width:34px;height:34px;font-size:19px}
+ .vault-brand h1{letter-spacing:1px}.vault-brand p{font-size:8px;letter-spacing:2px}.brand-rune{display:none}
+ #hud{padding:14px 12px}.hud-label{min-width:90px;font-size:9px}.hud-row{gap:8px}
+ .hud-stat{padding:6px 8px;font-size:12px}.hud-row:last-child{flex-wrap:wrap;gap:6px}
+ #main-area{padding:21px 12px 24px}.enemy-display{padding:17px 14px}.enemy-portrait{height:105px}
+ .action-buttons{flex-direction:row;flex-wrap:wrap}.action-buttons .btn{flex:1 1 30%;width:auto;max-width:none;min-width:92px;padding:11px 8px;font-size:12px}
+ .room-dots{gap:4px}.room-dot{height:8px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
 </style>
 </head>
 <body>
 
 <div id="game-container">
+  <header class="vault-brand"><div class="brand-emblem">◆</div><div><h1>OBSIDIAN <span>VAULT</span></h1><p>THE ENDLESS DESCENT</p></div><div class="brand-rune">✦</div></header>
   <!-- HUD -->
   <div id="hud">
     <div class="hud-row">
-      <span class="hud-label">HP</span>
+      <span class="hud-label">♥ HEALTH</span>
       <div class="hp-bar-container">
         <div class="hp-bar-outer">
           <div id="hp-bar" class="hp-bar-inner" style="width:100%"></div>
@@ -463,7 +563,7 @@ body {
       </div>
     </div>
     <div class="hud-row">
-      <span class="hud-label">XP</span>
+      <span class="hud-label">✦ EXPERIENCE</span>
       <div class="xp-bar-container">
         <div class="xp-bar-outer">
           <div id="xp-bar" class="xp-bar-inner" style="width:0%"></div>
@@ -480,7 +580,7 @@ body {
   </div>
 
   <!-- Floor/Room Indicator -->
-  <div id="floor-indicator">
+  <div id="floor-indicator"><div class="floor-kicker">✦ &nbsp; THE DESCENT &nbsp; ✦</div>
     <span id="floor-room-text">Floor 1 • Room 1/12</span>
     <div id="room-dots" class="room-dots"></div>
   </div>
@@ -489,7 +589,7 @@ body {
   <div id="main-area"></div>
 
   <!-- Text Log -->
-  <div id="log-area"></div>
+  <div class="log-heading"><span>◈ &nbsp; ADVENTURE JOURNAL</span><span class="log-live">● LIVE</span></div><div id="log-area" role="log" aria-live="polite"></div>
 </div>
 
 <!-- Level Up Modal -->
@@ -679,6 +779,9 @@ function renderRoomDots() {
 
 function renderMainArea(html) {
   $mainArea.innerHTML = html;
+  $mainArea.classList.remove('scene-enter');
+  void $mainArea.offsetWidth;
+  $mainArea.classList.add('scene-enter');
 }
 
 /* ============================================
@@ -861,6 +964,17 @@ function startCombat(enemy, isBoss = false) {
   renderCombatUI();
 }
 
+function getEnemySymbol(name) {
+  const n = name.toLowerCase();
+  if (/skeleton|lich|wraith|shadow/.test(n)) return '☠';
+  if (/dragon|demon|imp/.test(n)) return '♜';
+  if (/spider|bat|rat/.test(n)) return '✹';
+  if (/slime/.test(n)) return '◉';
+  if (/guardian|knight|orc|behemoth/.test(n)) return '♞';
+  if (/archmage/.test(n)) return '✧';
+  return '⚔';
+}
+
 function renderCombatUI() {
   const e = gameState.currentEnemy;
   const p = gameState.player;
@@ -868,16 +982,19 @@ function renderCombatUI() {
 
   renderMainArea(`
     <div class="enemy-display">
+      <div class="enemy-eyebrow">${gameState.room === 12 ? '☠ FLOOR GUARDIAN' : '⚔ HOSTILE ENCOUNTER'}</div>
+      <div class="enemy-portrait" aria-hidden="true"><span>${getEnemySymbol(e.name)}</span></div>
       <div class="enemy-name">${e.name}</div>
-      <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">HP: ${e.hp} / ${e.maxHp} | ATK: ${e.str} | DEF: ${e.def}</div>
+      <div class="enemy-stats"><span>⚔ ATK ${e.str}</span><span>◆ DEF ${e.def}</span></div>
+      <div class="enemy-health-label"><span>ENEMY HEALTH</span><span>${Math.max(0,e.hp)} / ${e.maxHp}</span></div>
       <div class="enemy-hp-bar-outer">
         <div class="enemy-hp-bar-inner" style="width:${enemyHpPct}%"></div>
       </div>
     </div>
     <div class="action-buttons">
-      <button class="btn btn-danger" onclick="playerAttack()" ${gameState.turnPending ? 'disabled' : ''}>⚔️ Attack</button>
-      <button class="btn btn-success" onclick="playerDefend()" ${gameState.turnPending ? 'disabled' : ''}>🛡️ Defend</button>
-      <button class="btn" onclick="usePotion()" ${p.potions <= 0 || p.hp >= p.maxHp || gameState.turnPending ? 'disabled' : ''}>🧪 Potion (${p.potions})</button>
+      <button class="btn btn-danger" onclick="playerAttack()" ${gameState.turnPending ? 'disabled' : ''}>⚔ Attack</button>
+      <button class="btn btn-success" onclick="playerDefend()" ${gameState.turnPending ? 'disabled' : ''}>◆ Defend</button>
+      <button class="btn" onclick="usePotion()" ${p.potions <= 0 || p.hp >= p.maxHp || gameState.turnPending ? 'disabled' : ''}>✚ Potion (${p.potions})</button>
     </div>
   `);
 }
@@ -1255,7 +1372,7 @@ function gameOver() {
     <div id="game-over-screen" class="active">
       <div class="go-icon">💀</div>
       <div class="go-title">Game Over</div>
-      <div class="go-subtitle">The tower claims another soul...</div>
+      <div class="go-subtitle">The vault claims another soul...</div>
 
       <div class="go-stats">
         <div class="go-section-title">Tower</div>
@@ -1312,7 +1429,7 @@ function restartGame() {
   gameState.merchantPrice = null;
 
   $logArea.innerHTML = '';
-  updateLog('You descend into the tower once more...', 'info');
+  updateLog('You enter the vault once more...', 'info');
 
   enterRoom();
 }
@@ -1322,7 +1439,7 @@ function restartGame() {
    ============================================ */
 function init() {
   loadRecord();
-  updateLog('Welcome to The Endless Tower. Your journey begins now.', 'info');
+  updateLog('Welcome to Obsidian Vault. Your descent begins now.', 'info');
   enterRoom();
 }
 
