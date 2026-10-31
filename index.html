@@ -191,6 +191,9 @@ body {
   background: #f85149;
   border-color: #f85149;
 }
+.room-dot.boss.completed { background: #3fb950; border-color: #3fb950; }
+.room-dot.boss.current { background: #d29922; border-color: #d29922; box-shadow: 0 0 6px rgba(210,153,34,0.5); }
+
 
 /* ============================================
    MAIN CONTENT AREA
@@ -512,7 +515,8 @@ const gameState = {
     gold: 0,
     xp: 0,
     level: 1,
-    defending: false
+    defending: false,
+    totalGoldEarned: 0
   },
   floor: 1,
   room: 1,
@@ -524,8 +528,59 @@ const gameState = {
   gameOver: false,
   paused: false,
   highScoreFloor: 0,
-  highScoreLevel: 0
+  highScoreLevel: 0,
+  highScoreRoom: 0,
+  turnPending: false,
+  floorTransitioning: false,
+  pendingUpgrades: 0,
+  merchantPrice: null,
+  transitionId: 0,
+  pendingTimers: new Set()
 };
+
+/* Persist records without preventing play when storage is unavailable. */
+const RECORD_KEY = 'obsidianVault.highScore.v1';
+function loadRecord() {
+  try {
+    const record = JSON.parse(localStorage.getItem(RECORD_KEY) || 'null');
+    if (record && Number.isInteger(record.floor) && record.floor >= 0) {
+      gameState.highScoreFloor = record.floor;
+      gameState.highScoreRoom = Number.isInteger(record.room) ? record.room : 0;
+      gameState.highScoreLevel = Number.isInteger(record.level) ? record.level : 0;
+    }
+  } catch (_) { /* Storage disabled or invalid: use in-memory record. */ }
+}
+function saveRecord() {
+  try {
+    localStorage.setItem(RECORD_KEY, JSON.stringify({
+      floor: gameState.highScoreFloor,
+      room: gameState.highScoreRoom,
+      level: gameState.highScoreLevel
+    }));
+  } catch (_) { /* Game still works without browser storage. */ }
+}
+
+/* All delayed actions are invalidated when the game changes phase. */
+function cancelPendingActions() {
+  gameState.transitionId++;
+  for (const timer of gameState.pendingTimers) clearTimeout(timer);
+  gameState.pendingTimers.clear();
+}
+function scheduleAction(fn, delay) {
+  const id = gameState.transitionId;
+  const timer = setTimeout(() => {
+    gameState.pendingTimers.delete(timer);
+    if (id === gameState.transitionId && !gameState.gameOver) fn();
+  }, delay);
+  gameState.pendingTimers.add(timer);
+}
+function completeRoom() {
+  if (!gameState.roomsCompleted.includes(gameState.room)) {
+    gameState.roomsCompleted.push(gameState.room);
+    gameState.totalRoomsCleared++;
+  }
+  renderUI();
+}
 
 /* ============================================
    DOM REFERENCES
@@ -611,21 +666,13 @@ function renderRoomDots() {
   for (let i = 1; i <= 12; i++) {
     const dot = document.createElement('div');
     dot.className = 'room-dot';
-
-    // Completed rooms are green
-    if (gameState.roomsCompleted.includes(i)) {
-      dot.classList.add('completed');
-    } else if (i === gameState.room && !gameState.gameOver) {
-      // Current room is yellow
-      dot.classList.add('current');
-    }
-
-    // Room 12 is always a boss room (red, square-ish)
-    if (i === 12) {
-      dot.classList.remove('current');
-      dot.classList.add('boss');
-    }
-
+    const completed = gameState.roomsCompleted.includes(i);
+    const current = i === gameState.room && !gameState.gameOver && !completed;
+    // Boss rooms keep their square shape, but completed/current status
+    // takes precedence over the default red boss color.
+    if (i === 12) dot.classList.add('boss');
+    if (completed) dot.classList.add('completed');
+    else if (current) dot.classList.add('current');
     $roomDots.appendChild(dot);
   }
 }
@@ -702,6 +749,9 @@ function generateFloorLayout(floorNum) {
    ============================================ */
 function enterRoom() {
   if (gameState.gameOver || gameState.paused) return;
+  cancelPendingActions();
+  gameState.turnPending = false;
+  gameState.merchantPrice = null;
 
   const floorNum = gameState.floor;
   const roomIdx = gameState.room - 1; // 0-indexed into layout
@@ -715,6 +765,7 @@ function enterRoom() {
   }
 
   const roomType = gameState.floorLayout[roomIdx];
+  renderUI(); // Update room label and active dot immediately on entry.
 
   switch (roomType) {
     case 'entrance':  showEntrance(); break;
@@ -799,6 +850,7 @@ function startCombat(enemy, isBoss = false) {
   gameState.currentEnemy = enemy;
   gameState.inCombat = true;
   gameState.player.defending = false;
+  gameState.turnPending = false;
 
   if (isBoss) {
     updateLog(`⚠️ BOSS ENCOUNTER: ${enemy.name} blocks your path!`, 'boss');
@@ -823,9 +875,9 @@ function renderCombatUI() {
       </div>
     </div>
     <div class="action-buttons">
-      <button class="btn btn-danger" onclick="playerAttack()">⚔️ Attack</button>
-      <button class="btn btn-success" onclick="playerDefend()">🛡️ Defend</button>
-      <button class="btn" onclick="usePotion()" ${p.potions <= 0 ? 'disabled' : ''}>🧪 Potion (${p.potions})</button>
+      <button class="btn btn-danger" onclick="playerAttack()" ${gameState.turnPending ? 'disabled' : ''}>⚔️ Attack</button>
+      <button class="btn btn-success" onclick="playerDefend()" ${gameState.turnPending ? 'disabled' : ''}>🛡️ Defend</button>
+      <button class="btn" onclick="usePotion()" ${p.potions <= 0 || p.hp >= p.maxHp || gameState.turnPending ? 'disabled' : ''}>🧪 Potion (${p.potions})</button>
     </div>
   `);
 }
@@ -845,8 +897,9 @@ function calculateDamage(atk, def, isDefending) {
    PLAYER ACTIONS
    ============================================ */
 function playerAttack() {
-  if (!gameState.inCombat || gameState.paused) return;
+  if (!gameState.inCombat || gameState.paused || gameState.turnPending) return;
 
+  gameState.turnPending = true;
   const p = gameState.player;
   const e = gameState.currentEnemy;
 
@@ -858,16 +911,17 @@ function playerAttack() {
   if (e.hp <= 0) {
     enemyDefeated();
   } else {
-    setTimeout(() => enemyTurn(), 350);
+    scheduleAction(enemyTurn, 350);
   }
 
-  renderCombatUI();
+  if (gameState.inCombat) renderCombatUI();
   renderUI();
 }
 
 function playerDefend() {
-  if (!gameState.inCombat || gameState.paused) return;
+  if (!gameState.inCombat || gameState.paused || gameState.turnPending) return;
 
+  gameState.turnPending = true;
   gameState.player.defending = true;
   updateLog('You brace yourself, raising your guard.', 'info');
 
@@ -878,15 +932,16 @@ function playerDefend() {
     <div class="scene-desc">${gameState.currentEnemy.name} is attacking!</div>
   `);
 
-  setTimeout(() => enemyTurn(), 400);
+  scheduleAction(enemyTurn, 400);
 }
 
 function usePotion() {
-  if (!gameState.inCombat || gameState.paused) return;
+  if (!gameState.inCombat || gameState.paused || gameState.turnPending) return;
 
   const p = gameState.player;
   if (p.potions <= 0 || p.hp >= p.maxHp) return;
 
+  gameState.turnPending = true;
   p.potions--;
   const healAmt = Math.floor(p.maxHp * 0.4);
   p.hp = Math.min(p.maxHp, p.hp + healAmt);
@@ -898,7 +953,7 @@ function usePotion() {
     <div class="scene-desc">${gameState.currentEnemy.name} is attacking!</div>
   `);
 
-  setTimeout(() => enemyTurn(), 400);
+  scheduleAction(enemyTurn, 400);
 }
 
 /* ============================================
@@ -912,6 +967,7 @@ function applyDamage(target, amount) {
    ENEMY TURN
    ============================================ */
 function enemyTurn() {
+  if (!gameState.inCombat || gameState.paused || gameState.gameOver || !gameState.turnPending) return;
   const p = gameState.player;
   const e = gameState.currentEnemy;
 
@@ -933,6 +989,7 @@ function enemyTurn() {
     return;
   }
 
+  gameState.turnPending = false;
   renderCombatUI();
 }
 
@@ -942,86 +999,72 @@ function enemyTurn() {
 function enemyDefeated() {
   const e = gameState.currentEnemy;
   const p = gameState.player;
-
+  cancelPendingActions();
+  gameState.turnPending = false;
   updateLog(`${e.name} has been defeated!`, 'loot');
   updateLog(`Gained ${e.xpReward} XP and ${e.goldReward} gold.`, 'loot');
-
-  // Immediately deposit rewards
   p.xp += e.xpReward;
-  p.gold += e.goldReward;
-
+  awardGold(e.goldReward);
   gameState.inCombat = false;
-  gameState.totalRoomsCleared++;
-  gameState.roomsCompleted.push(gameState.room);
-
-  renderUI();
-
-  // Check level up — returns true if a level-up modal was shown
-  const leveledUp = checkLevelUp();
-
-  // Only advance if no level-up modal is blocking us
-  if (!leveledUp) {
-    setTimeout(() => advanceRoom(), 500);
-  }
+  gameState.currentEnemy = null;
+  completeRoom();
+  checkLevelUp(() => scheduleAction(advanceRoom, 500));
 }
 
-/* ============================================
-   LEVEL UP SYSTEM
-   Returns true if a level-up modal was displayed.
-   ============================================ */
-function checkLevelUp() {
-  const p = gameState.player;
-  let leveled = false;
+function awardGold(amount) {
+  gameState.player.gold += amount;
+  gameState.player.totalGoldEarned += amount;
+}
 
+/* Queue exactly one upgrade choice for each earned level. */
+function checkLevelUp(onComplete = () => {}) {
+  const p = gameState.player;
   while (p.xp >= p.level * 50) {
     p.xp -= p.level * 50;
     p.level++;
-
-    // Auto stat increases on level up
     p.maxHp += 10;
     p.hp = Math.min(p.hp + 20, p.maxHp);
-    p.str += 1;
-    p.def += 1;
-
+    p.str++;
+    p.def++;
+    gameState.pendingUpgrades++;
     updateLog(`🎉 Level Up! You are now level ${p.level}.`, 'levelup');
-    showLevelUpModal();
-    leveled = true;
   }
-
-  return leveled;
+  renderUI();
+  if (gameState.pendingUpgrades > 0) {
+    showLevelUpModal(onComplete);
+    return true;
+  }
+  onComplete();
+  return false;
 }
 
-function showLevelUpModal() {
+function showLevelUpModal(onComplete) {
   gameState.paused = true;
-
   const options = [
     { label: '❤️ Max HP +15', desc: 'Increase your maximum hit points.', apply: () => { gameState.player.maxHp += 15; gameState.player.hp += 15; } },
     { label: '⚔️ Strength +2', desc: 'Increase your attack damage.', apply: () => { gameState.player.str += 2; } },
     { label: '🛡️ Defense +2', desc: 'Reduce incoming damage taken.', apply: () => { gameState.player.def += 2; } }
   ];
-
   $upgradeOptions.innerHTML = '';
   options.forEach(opt => {
     const btn = document.createElement('button');
     btn.className = 'upgrade-btn';
     btn.innerHTML = `${opt.label}<span class="upgrade-desc">${opt.desc}</span>`;
     btn.onclick = () => {
+      if (!gameState.paused || gameState.pendingUpgrades <= 0) return;
       opt.apply();
+      gameState.pendingUpgrades--;
+      renderUI();
+      if (gameState.pendingUpgrades > 0) {
+        showLevelUpModal(onComplete);
+        return;
+      }
       $modalOverlay.classList.remove('active');
       gameState.paused = false;
-
-      // Only advance if we're NOT in combat (combat UI was preserved)
-      if (!gameState.inCombat) {
-        advanceRoom();
-      } else {
-        renderCombatUI();
-      }
-
-      renderUI();
+      onComplete();
     };
     $upgradeOptions.appendChild(btn);
   });
-
   $modalOverlay.classList.add('active');
 }
 
@@ -1035,11 +1078,11 @@ function showTreasureChest() {
 
   updateLog(`You found a treasure chest! Gained ${goldFind} gold and ${xpFind} XP.`, 'loot');
 
-  gameState.player.gold += goldFind;
+  awardGold(goldFind);
   gameState.player.xp += xpFind;
 
   renderUI();
-  checkLevelUp(); // May show modal, may pause advancement
+  checkLevelUp(); // Rewards do not automatically skip the treasure room.
 
   const html = `
     <div class="scene-icon">📦</div>
@@ -1073,6 +1116,8 @@ function showHealingFountain() {
 }
 
 function useFountain() {
+  if (gameState.turnPending || gameState.paused || gameState.gameOver) return;
+  gameState.turnPending = true;
   const p = gameState.player;
   const healAmt = Math.floor(p.maxHp * 0.5);
   const actualHeal = Math.min(healAmt, p.maxHp - p.hp);
@@ -1087,20 +1132,24 @@ function useFountain() {
   renderUI();
 
   // Mark room completed and advance
-  gameState.roomsCompleted.push(gameState.room);
-  gameState.totalRoomsCleared++;
-
-  setTimeout(() => advanceRoom(), 400);
+  completeRoom();
+  scheduleAction(() => {
+    gameState.turnPending = false;
+    advanceRoom();
+  }, 400);
 }
 
 function skipFountain() {
+  if (gameState.turnPending || gameState.paused || gameState.gameOver) return;
+  gameState.turnPending = true;
   updateLog('You decide to save the fountain for later.', 'info');
 
   // Mark room completed and advance
-  gameState.roomsCompleted.push(gameState.room);
-  gameState.totalRoomsCleared++;
-
-  setTimeout(() => advanceRoom(), 400);
+  completeRoom();
+  scheduleAction(() => {
+    gameState.turnPending = false;
+    advanceRoom();
+  }, 400);
 }
 
 /* ============================================
@@ -1109,7 +1158,7 @@ function skipFountain() {
 function showMerchant() {
   gameState.inCombat = false;
   const p = gameState.player;
-  const cost = rand(15, 25 + gameState.floor * 3);
+  const cost = gameState.merchantPrice ?? (gameState.merchantPrice = rand(15, 25 + gameState.floor * 3));
 
   updateLog('A wandering merchant approaches you.', 'info');
 
@@ -1129,7 +1178,7 @@ function showMerchant() {
 
 function buyMerchantItem(cost) {
   const p = gameState.player;
-  if (p.gold < cost) return;
+  if (gameState.gameOver || gameState.paused || gameState.inCombat || gameState.floorLayout[gameState.room - 1] !== 'merchant' || cost !== gameState.merchantPrice || p.gold < cost) return;
 
   p.gold -= cost;
   p.potions++;
@@ -1143,66 +1192,64 @@ function buyMerchantItem(cost) {
    ROOM ADVANCEMENT
    ============================================ */
 function advanceRoom() {
-  if (gameState.gameOver || gameState.paused) return;
+  if (gameState.gameOver || gameState.paused || gameState.floorTransitioning) return;
+  if (gameState.inCombat || gameState.turnPending) return;
 
-  gameState.room++;
-
-  if (gameState.room > 12) {
+  // Completion is idempotent: every room is counted exactly once.
+  completeRoom();
+  cancelPendingActions();
+  if (gameState.room === 12) {
+    // Keep Room 12/12 visible until the next floor actually starts.
     completeFloor();
   } else {
+    gameState.room++;
     enterRoom();
   }
 }
 
 function completeFloor() {
+  if (gameState.floorTransitioning || gameState.gameOver) return;
+  gameState.floorTransitioning = true;
+  completeRoom();
   updateLog(`🎉 You've cleared Floor ${gameState.floor}!`, 'levelup');
-
-  // Bonus for clearing floor
   const bonusGold = rand(10, 20 + gameState.floor * 5);
   const bonusXp = rand(10, 30 + gameState.floor * 5);
-  gameState.player.gold += bonusGold;
+  awardGold(bonusGold);
   gameState.player.xp += bonusXp;
-
   updateLog(`Floor clear bonus: ${bonusGold} gold, ${bonusXp} XP.`, 'loot');
-
-  // Reset room tracking for next floor
-  gameState.roomsCompleted = [];
-  gameState.floorLayout = [];
-
-  renderUI();
-  checkLevelUp(); // May pause for level-up modal
-
-  setTimeout(() => {
+  renderUI(); // Display all 12 completed dots during floor-clear/upgrade.
+  checkLevelUp(() => scheduleAction(() => {
     gameState.floor++;
     gameState.room = 1;
+    gameState.roomsCompleted = [];
+    gameState.floorLayout = [];
+    gameState.floorTransitioning = false;
     enterRoom();
-  }, 800);
+  }, 800));
 }
 
 /* ============================================
    GAME OVER
    ============================================ */
 function gameOver() {
+  cancelPendingActions();
   gameState.gameOver = true;
+  gameState.turnPending = false;
   const p = gameState.player;
-
-  // Mark current room as completed if not already
-  if (!gameState.roomsCompleted.includes(gameState.room)) {
-    gameState.roomsCompleted.push(gameState.room);
-  }
 
   updateLog('💀 You have fallen...', 'boss');
 
-  // Update high score
-  if (gameState.floor > gameState.highScoreFloor ||
-      (gameState.floor === gameState.highScoreFloor && p.level > gameState.highScoreLevel)) {
+  // Compare deepest floor, then room, then character level.
+  const isNewHigh = gameState.floor > gameState.highScoreFloor ||
+    (gameState.floor === gameState.highScoreFloor && gameState.room > gameState.highScoreRoom) ||
+    (gameState.floor === gameState.highScoreFloor && gameState.room === gameState.highScoreRoom && p.level > gameState.highScoreLevel);
+  if (isNewHigh) {
     gameState.highScoreFloor = gameState.floor;
+    gameState.highScoreRoom = gameState.room;
     gameState.highScoreLevel = p.level;
+    saveRecord();
   }
-
-  renderUI(); // Ensure dots reflect final state
-
-  const isNewHigh = gameState.floor === gameState.highScoreFloor && p.level === gameState.highScoreLevel;
+  renderUI();
 
   renderMainArea(`
     <div id="game-over-screen" class="active">
@@ -1228,7 +1275,7 @@ function gameOver() {
         </div>
         <div class="go-stat-row">
           <span class="go-stat-label">Gold Earned</span>
-          <span class="go-stat-value">${p.gold}</span>
+          <span class="go-stat-value">${p.totalGoldEarned}</span>
         </div>
       </div>
 
@@ -1243,9 +1290,11 @@ function gameOver() {
    RESTART GAME
    ============================================ */
 function restartGame() {
+  cancelPendingActions();
+  $modalOverlay.classList.remove('active');
   gameState.player = {
     hp: 100, maxHp: 100, str: 5, def: 2, potions: 1,
-    gold: 0, xp: 0, level: 1, defending: false
+    gold: 0, xp: 0, level: 1, defending: false, totalGoldEarned: 0
   };
 
   gameState.floor = 1;
@@ -1257,6 +1306,10 @@ function restartGame() {
   gameState.inCombat = false;
   gameState.gameOver = false;
   gameState.paused = false;
+  gameState.turnPending = false;
+  gameState.floorTransitioning = false;
+  gameState.pendingUpgrades = 0;
+  gameState.merchantPrice = null;
 
   $logArea.innerHTML = '';
   updateLog('You descend into the tower once more...', 'info');
@@ -1268,6 +1321,7 @@ function restartGame() {
    INITIALIZATION
    ============================================ */
 function init() {
+  loadRecord();
   updateLog('Welcome to The Endless Tower. Your journey begins now.', 'info');
   enterRoom();
 }
