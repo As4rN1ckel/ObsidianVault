@@ -1,0 +1,114 @@
+{
+  "sword": {
+    "name": "Sword",
+    "slot": "weapon",
+    "mainAttribute": "might",
+    "weaponDamage": 5,
+    "price": 30
+  },
+  "staff": {
+    "name": "Staff",
+    "slot": "weapon",
+    "mainAttribute": "intellect",
+    "weaponDamage": 4,
+    "price": 30
+  },
+  "dagger": {
+    "name": "Dagger",
+    "slot": "weapon",
+    "mainAttribute": "agility",
+    "weaponDamage": 4,
+    "price": 30
+  },
+  "shield": {
+    "name": "Shield",
+    "slot": "offhand",
+    "flat": {
+      "defense": 3,
+      "blockChance": 0.05
+    },
+    "price": 35
+  },
+  "focus": {
+    "name": "Arcane Focus",
+    "slot": "offhand",
+    "flat": {
+      "intellect": 2,
+      "maxResource": 5
+    },
+    "percent": {
+      "damage": 0.03
+    },
+    "price": 35
+  },
+  "armor": {
+    "name": "Vaultguard Armor",
+    "slot": "armor",
+    "flat": {
+      "defense": 4,
+      "vitality": 1
+    },
+    "price": 45
+  },
+  "backpack": {
+    "name": "Traveler Pack",
+    "slot": "backpack",
+    "flat": {
+      "backpackSlots": 4
+    },
+    "price": 35
+  },
+  "charm": {
+    "name": "Lucky Charm",
+    "slot": "accessory",
+    "flat": {
+      "luck": 2
+    },
+    "percent": {
+      "maxHp": 0.05
+    },
+    "price": 30
+  },
+  "potion": {
+    "name": "Healing Potion",
+    "slot": "consumable",
+    "price": 16,
+    "description": "Restore 40% Max HP. Equip up to 6."
+  },
+  "scrap": {
+    "name": "Scrap Metal",
+    "kind": "material",
+    "category": "Basic",
+    "price": 5
+  },
+  "leather": {
+    "name": "Leather",
+    "kind": "material",
+    "category": "Basic",
+    "price": 6
+  },
+  "cloth": {
+    "name": "Cloth",
+    "kind": "material",
+    "category": "Basic",
+    "price": 4
+  },
+  "ore": {
+    "name": "Iron Ore",
+    "kind": "material",
+    "category": "Advanced",
+    "price": 12
+  },
+  "residue": {
+    "name": "Magic Residue",
+    "kind": "material",
+    "category": "Advanced",
+    "price": 15
+  },
+  "core": {
+    "name": "Beast Cores",
+    "kind": "material",
+    "category": "Advanced",
+    "price": 18
+  }
+}

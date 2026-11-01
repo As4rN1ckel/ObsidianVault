@@ -1,0 +1,137 @@
+{
+  "fighter": [
+    {
+      "id": "training",
+      "name": "Martial Training",
+      "description": "+1 Might",
+      "flat": {
+        "might": 1
+      },
+      "requires": []
+    },
+    {
+      "id": "fortitude",
+      "name": "Fortitude",
+      "description": "+5% Max HP",
+      "percent": {
+        "maxHp": 0.05
+      },
+      "requires": [
+        "training"
+      ]
+    },
+    {
+      "id": "precision",
+      "name": "Precision",
+      "description": "+2% critical chance",
+      "flat": {
+        "critChance": 0.02
+      },
+      "requires": [
+        "training"
+      ]
+    },
+    {
+      "id": "mastery",
+      "name": "Veteran",
+      "description": "+5% Damage; requires both branches",
+      "percent": {
+        "damage": 0.05
+      },
+      "requires": [
+        "fortitude",
+        "precision"
+      ]
+    }
+  ],
+  "wizard": [
+    {
+      "id": "training",
+      "name": "Arcane Study",
+      "description": "+1 Intellect",
+      "flat": {
+        "intellect": 1
+      },
+      "requires": []
+    },
+    {
+      "id": "fortitude",
+      "name": "Fortitude",
+      "description": "+5% Max HP",
+      "percent": {
+        "maxHp": 0.05
+      },
+      "requires": [
+        "training"
+      ]
+    },
+    {
+      "id": "precision",
+      "name": "Precision",
+      "description": "+2% critical chance",
+      "flat": {
+        "critChance": 0.02
+      },
+      "requires": [
+        "training"
+      ]
+    },
+    {
+      "id": "mastery",
+      "name": "Spellweaver",
+      "description": "+5% Damage; requires both branches",
+      "percent": {
+        "damage": 0.05
+      },
+      "requires": [
+        "fortitude",
+        "precision"
+      ]
+    }
+  ],
+  "rogue": [
+    {
+      "id": "training",
+      "name": "Quick Hands",
+      "description": "+1 Agility",
+      "flat": {
+        "agility": 1
+      },
+      "requires": []
+    },
+    {
+      "id": "fortitude",
+      "name": "Fortitude",
+      "description": "+5% Max HP",
+      "percent": {
+        "maxHp": 0.05
+      },
+      "requires": [
+        "training"
+      ]
+    },
+    {
+      "id": "precision",
+      "name": "Precision",
+      "description": "+2% critical chance",
+      "flat": {
+        "critChance": 0.02
+      },
+      "requires": [
+        "training"
+      ]
+    },
+    {
+      "id": "mastery",
+      "name": "Shadow Adept",
+      "description": "+5% Damage; requires both branches",
+      "percent": {
+        "damage": 0.05
+      },
+      "requires": [
+        "fortitude",
+        "precision"
+      ]
+    }
+  ]
+}

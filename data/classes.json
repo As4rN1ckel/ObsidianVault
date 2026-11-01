@@ -1,0 +1,50 @@
+{
+  "fighter": {
+    "name": "Fighter",
+    "icon": "\u265c",
+    "description": "Durable frontline combatant",
+    "skill": "Block",
+    "skillInfo": "Absorb 150% of Defense + Might damage; counterattack for 70% of Damage when struck.",
+    "attributes": {
+      "might": 8,
+      "agility": 4,
+      "intellect": 2,
+      "vitality": 8,
+      "luck": 3
+    },
+    "weapon": "sword",
+    "resource": "stamina"
+  },
+  "wizard": {
+    "name": "Wizard",
+    "icon": "\u2727",
+    "description": "Arcane defense specialist",
+    "skill": "Magic Shield",
+    "skillInfo": "For 2 enemy turns, reduce damage by 40% and reflect 15% of damage taken.",
+    "attributes": {
+      "might": 2,
+      "agility": 4,
+      "intellect": 10,
+      "vitality": 5,
+      "luck": 4
+    },
+    "weapon": "staff",
+    "resource": "mana"
+  },
+  "rogue": {
+    "name": "Rogue",
+    "icon": "\u2694",
+    "description": "Swift and precise duelist",
+    "skill": "Dodge",
+    "skillInfo": "Evade the next attack and gain +50% damage on your next basic attack.",
+    "attributes": {
+      "might": 4,
+      "agility": 10,
+      "intellect": 3,
+      "vitality": 5,
+      "luck": 6
+    },
+    "weapon": "dagger",
+    "resource": "stamina"
+  }
+}

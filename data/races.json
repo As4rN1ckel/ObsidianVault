@@ -1,0 +1,35 @@
+{
+  "human": {
+    "name": "Human",
+    "description": "Versatile and resourceful",
+    "bonus": {
+      "might": 1,
+      "agility": 1,
+      "intellect": 1,
+      "vitality": 1,
+      "luck": 1
+    }
+  },
+  "dwarf": {
+    "name": "Dwarf",
+    "description": "Sturdy, resilient, slower",
+    "bonus": {
+      "might": 2,
+      "agility": -1,
+      "intellect": 0,
+      "vitality": 3,
+      "luck": 0
+    }
+  },
+  "elf": {
+    "name": "Elf",
+    "description": "Agile and magically gifted",
+    "bonus": {
+      "might": 0,
+      "agility": 2,
+      "intellect": 2,
+      "vitality": 0,
+      "luck": 1
+    }
+  }
+}

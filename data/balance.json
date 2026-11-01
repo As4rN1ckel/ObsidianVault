@@ -1,0 +1,64 @@
+{
+  "attributes": [
+    "might",
+    "agility",
+    "intellect",
+    "vitality",
+    "luck"
+  ],
+  "roomsPerFloor": 10,
+  "maxFloor": 30,
+  "backpackSlots": 14,
+  "potionSlots": 6,
+  "apPerLevel": 2,
+  "cpPerLevel": 1,
+  "hpBase": 45,
+  "hpPerVitality": 7,
+  "defensePerVitality": 0.2,
+  "damagePerAttribute": 1.2,
+  "resourceBase": 20,
+  "resourcePerAttribute": 3,
+  "resourceRegen": 4,
+  "critBase": 0.05,
+  "critPerLuck": 0.008,
+  "critCap": 0.5,
+  "dodgeBase": 0.02,
+  "dodgePerAgility": 0.004,
+  "dodgeCap": 0.4,
+  "blockBase": 0.03,
+  "blockCap": 0.5,
+  "speedBase": 9,
+  "speedPerAgility": 0.35,
+  "potionHealing": 0.4,
+  "sellRatio": 0.35,
+  "xpBase": 40,
+  "xpPerLevel": 25,
+  "enemyHpBase": 18,
+  "enemyHpPerFloor": 6,
+  "bossHpBase": 42,
+  "bossHpPerFloor": 16,
+  "enemyDamageBase": 4,
+  "enemyDamagePerFloor": 1.2,
+  "bossDamageBase": 7,
+  "bossDamagePerFloor": 1.8,
+  "tiers": [
+    {
+      "id": "iron",
+      "name": "Iron",
+      "multiplier": 1,
+      "priceMultiplier": 1
+    },
+    {
+      "id": "steel",
+      "name": "Steel",
+      "multiplier": 1.6,
+      "priceMultiplier": 2
+    },
+    {
+      "id": "obsidian",
+      "name": "Obsidian",
+      "multiplier": 2.5,
+      "priceMultiplier": 4
+    }
+  ]
+}

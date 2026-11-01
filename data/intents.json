@@ -1,0 +1,37 @@
+{
+  "attack": {
+    "icon": "\u2694",
+    "name": "Basic Attack",
+    "detail": "An ordinary physical strike"
+  },
+  "prepare": {
+    "icon": "\u26a0",
+    "name": "Prepare Strong Attack",
+    "detail": "Charges up; the next strike deals 170% damage"
+  },
+  "heavy": {
+    "icon": "\ud83d\udca5",
+    "name": "Heavy Attack",
+    "detail": "A charged strike dealing 170% damage"
+  },
+  "armor": {
+    "icon": "\u25c6",
+    "name": "Raise Armor",
+    "detail": "+3 Defense against the next 2 player attacks"
+  },
+  "poison": {
+    "icon": "\u2623",
+    "name": "Poison Strike",
+    "detail": "A weaker hit that applies poison for 3 player turns"
+  },
+  "drain": {
+    "icon": "\u2671",
+    "name": "Life Drain",
+    "detail": "Attack for 80% damage; heal from damage dealt"
+  },
+  "enrage": {
+    "icon": "\u2739",
+    "name": "Enrage",
+    "detail": "Below 40% HP, permanently gain 30% attack damage"
+  }
+}
