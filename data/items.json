@@ -3,21 +3,21 @@
     "name": "Sword",
     "slot": "weapon",
     "mainAttribute": "might",
-    "weaponDamage": 5,
+    "weaponDamage": 9,
     "price": 30
   },
   "staff": {
     "name": "Staff",
     "slot": "weapon",
     "mainAttribute": "intellect",
-    "weaponDamage": 4,
+    "weaponDamage": 8,
     "price": 30
   },
   "dagger": {
     "name": "Dagger",
     "slot": "weapon",
     "mainAttribute": "agility",
-    "weaponDamage": 4,
+    "weaponDamage": 8,
     "price": 30
   },
   "shield": {
@@ -73,7 +73,7 @@
     "name": "Healing Potion",
     "slot": "consumable",
     "price": 16,
-    "description": "Restore 40% Max HP. Equip up to 6."
+    "description": "Restore 30% Max HP. Equip up to 6."
   },
   "scrap": {
     "name": "Scrap Metal",

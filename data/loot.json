@@ -1,0 +1,182 @@
+{
+  "goblin": {
+    "materials": [
+      "scrap",
+      "ore"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "slime": {
+    "materials": [
+      "scrap",
+      "cloth"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "rat": {
+    "materials": [
+      "leather",
+      "core"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "bandit": {
+    "materials": [
+      "scrap",
+      "ore"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "skeleton": {
+    "materials": [
+      "scrap",
+      "ore"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "wraith": {
+    "materials": [
+      "cloth",
+      "residue"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "orc": {
+    "materials": [
+      "leather",
+      "core"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "spider": {
+    "materials": [
+      "leather",
+      "core"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "bat": {
+    "materials": [
+      "leather",
+      "core"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "imp": {
+    "materials": [
+      "cloth",
+      "residue"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2
+  },
+  "guardian": {
+    "materials": [
+      "scrap",
+      "ore"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 1,
+    "potionChance": 0.5
+  },
+  "knight": {
+    "materials": [
+      "scrap",
+      "ore"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 1,
+    "potionChance": 0.5
+  },
+  "dragon": {
+    "materials": [
+      "leather",
+      "core"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 1,
+    "potionChance": 0.5
+  },
+  "lich": {
+    "materials": [
+      "cloth",
+      "residue"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 1,
+    "potionChance": 0.5
+  },
+  "demon": {
+    "materials": [
+      "cloth",
+      "residue"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 1,
+    "potionChance": 0.5
+  },
+  "archmage": {
+    "materials": [
+      "cloth",
+      "residue"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 1,
+    "potionChance": 0.5
+  },
+  "behemoth": {
+    "materials": [
+      "leather",
+      "core"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 1,
+    "potionChance": 0.5
+  },
+  "shadow": {
+    "materials": [
+      "cloth",
+      "residue"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 1,
+    "potionChance": 0.5
+  }
+}

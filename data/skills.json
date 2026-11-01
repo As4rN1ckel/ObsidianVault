@@ -7,7 +7,7 @@
   },
   "wizard": {
     "cost": 12,
-    "cooldown": 3,
+    "cooldown": 5,
     "duration": 2,
     "reduction": 0.4,
     "reflection": 0.15
@@ -16,5 +16,12 @@
     "cost": 10,
     "cooldown": 3,
     "attackBonus": 1.5
+  },
+  "arcaneBolt": {
+    "cost": 7,
+    "cooldown": 3,
+    "baseDamage": 4,
+    "levelScale": 1,
+    "intellectScale": 1.2
   }
 }

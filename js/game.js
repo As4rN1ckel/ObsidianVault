@@ -1,7 +1,7 @@
 
 'use strict';
 // Turn-based exploration and combat; definitions are loaded from /data.
-let CLASSES, RACES, ENEMY_TYPES, BOSSES, INTENTS, BALANCE, ITEMS, PERKS, SKILLS;
+let CLASSES, RACES, ENEMY_TYPES, BOSSES, INTENTS, BALANCE, ITEMS, PERKS, SKILLS, LOOT;
 const gameState = {
   player:null, started:false, floor:1, room:1, roomsCompleted:[], totalRoomsCleared:0,
   floorLayout:[],currentEnemy:null,combat:null,inCombat:false,gameOver:false,paused:false,
@@ -35,7 +35,7 @@ function makePlayer(name,classKey,raceKey){
     attributes:buildStats(classKey,raceKey),ap:0,cp:0,perks:[],inventory:[],
     equipment:{weapon:createItem(CLASSES[classKey].weapon,0),offhand:null,armor:null,backpack:null,accessory:null},
     hp:Infinity,resource:Infinity,potions:0,gold:0,xp:0,level:1,totalGoldEarned:0,
-    cooldownReadyAt:0,blockHp:0,dodgeReady:false,dodgeBonus:false,magicShieldTurns:0,poisonTurns:0,poisonDamage:0};
+    cooldownReadyAt:0,boltReadyAt:0,blockHp:0,dodgeReady:false,dodgeBonus:false,magicShieldTurns:0,poisonTurns:0,poisonDamage:0};
   recalculate(p);return p;
 }
 
@@ -89,7 +89,7 @@ function startRun(){
   gameState.roomsCompleted=[];gameState.totalRoomsCleared=0;gameState.floorLayout=[];
   gameState.currentEnemy=null;gameState.combat=null;gameState.inCombat=false;gameState.gameOver=false;
   gameState.paused=false;gameState.turnPending=false;gameState.floorTransitioning=false;
-  gameState.panel=null;gameState.merchantStock=null;gameState.runSeed=rand(1,2_000_000_000);
+  gameState.pendingLoot=[];gameState.lootOpen=false;gameState.panel=null;gameState.merchantStock=null;gameState.runSeed=rand(1,2_000_000_000);
   $container.classList.remove('hub-mode');$logArea.replaceChildren();
   updateLog(`${gameState.player.name}, the ${RACES[race].name} ${CLASSES[klass].name}, enters the Vault.`,'levelup');
   enterRoom();
@@ -189,7 +189,7 @@ function getCombatStatus(){
 }
 function startCombat(enemy,boss=false){
   gameState.currentEnemy=enemy;gameState.inCombat=true;gameState.turnPending=true;
-  const p=gameState.player;p.cooldownReadyAt=0;p.blockHp=0;p.dodgeReady=false;p.dodgeBonus=false;p.magicShieldTurns=0;
+  const p=gameState.player;p.cooldownReadyAt=0;p.boltReadyAt=0;p.blockHp=0;p.dodgeReady=false;p.dodgeBonus=false;p.magicShieldTurns=0;
   p.poisonTurns=0;p.poisonDamage=0;
   gameState.combat={owner:null,playerTurns:0,enemyTurns:0,
     playerNext:100/p.speed,enemyNext:100/enemy.speed};
@@ -252,6 +252,7 @@ function renderCombatUI(){
     <div class="action-buttons combat-actions">
       <button class="btn btn-danger" onclick="playerAttack()" ${!turnReady?'disabled':''}>⚔ Basic Attack</button>
       <button class="btn btn-success" onclick="playerSkill()" title="${escapeHtml(cls.skillInfo)}" ${!ready?'disabled':''}>${p.classId==='fighter'?'◆':p.classId==='wizard'?'✧':'➤'} ${cls.skill} (${SKILLS[p.classId].cost} ${label(cls.resource)})${cd?` (CD ${cd})`:''}</button>
+      ${p.classId==='wizard'?`<button class="btn btn-danger" onclick="arcaneBolt()" ${!turnReady||p.resource<SKILLS.arcaneBolt.cost||c.playerTurns<p.boltReadyAt?'disabled':''}>Arcane Bolt · ${SKILLS.arcaneBolt.cost} Mana${p.boltReadyAt>c.playerTurns?` (CD ${p.boltReadyAt-c.playerTurns})`:''}</button>`:''}
       <button class="btn" onclick="usePotion()" ${!turnReady||p.potions<=0||p.hp>=p.maxHp?'disabled':''}>✚ Potion (${p.potions})</button>
     </div>
     <div class="combat-hint">${cls.skill}: ${cls.skillInfo} Cooldown ${SKILLS[p.classId].cooldown} of your turns. Regain ${BALANCE.resourceRegen} ${label(cls.resource)} each turn.</div>`);
@@ -356,10 +357,10 @@ function enemyDefeated(){
   updateLog(`${e.name} defeated! +${e.xpReward} XP and +${gold} Gold.`,'loot');
   gameState.inCombat=false;gameState.currentEnemy=null;gameState.combat=null;
   p.poisonTurns=0;p.poisonDamage=0;p.blockHp=0;p.magicShieldTurns=0;p.dodgeReady=false;p.dodgeBonus=false;
-  grantLoot(e.isBoss);
-  completeRoom();
-  renderMainArea(`<div class="scene-icon">✦</div><div class="scene-title">Victory!</div><div class="scene-desc">Gained ${e.xpReward} XP and ${gold} gold.</div>`);
-  checkLevelUp(()=>scheduleAction(()=>{gameState.turnPending=false;advanceRoom();},450));
+  gameState.turnPending=false;completeRoom();checkLevelUp();
+  gameState.lootTitle=`Victory! +${e.xpReward} XP · +${gold} Gold`;
+  grantLoot(e.id);
+
 }
 function checkLevelUp(onComplete=()=>{}){
   const p=gameState.player;
@@ -372,9 +373,9 @@ function checkLevelUp(onComplete=()=>{}){
 
 function showTreasureChest(){
   const gold=awardGold(rand(10,25+gameState.floor*5)),xp=rand(5,15+gameState.floor*2);
-  grantLoot(true);gameState.player.xp+=xp;updateLog(`You find a treasure chest! +${gold} Gold, +${xp} XP.`,'loot');
-  renderMainArea(`<div class="scene-icon">📦</div><div class="scene-title">Treasure Chest!</div><div class="scene-desc">Ancient coins and runes glitter in the darkness. You gain ${gold} Gold and ${xp} XP.</div><div class="action-buttons"><button class="btn btn-primary" onclick="advanceRoom()">Continue →</button></div>`);
-  checkLevelUp(); // Keep the treasure scene visible until the player chooses Continue.
+  gameState.player.xp+=xp;checkLevelUp();
+  gameState.lootTitle=`Treasure · +${gold} Gold · +${xp} XP`;grantLoot('treasure');
+
 }
 function showHealingFountain(){
   const p=gameState.player,heal=Math.floor(p.maxHp*.5);
@@ -389,7 +390,7 @@ function resolveFountain(use){
 }
 function useFountain(){resolveFountain(true);}function skipFountain(){resolveFountain(false);}
 function advanceRoom(){
-  if(!gameState.started||gameState.gameOver||gameState.paused||gameState.floorTransitioning||gameState.inCombat||gameState.turnPending)return;
+  if(gameState.lootOpen||!gameState.started||gameState.gameOver||gameState.paused||gameState.floorTransitioning||gameState.inCombat||gameState.turnPending)return;
   completeRoom();cancelPendingActions();
   if(gameState.room===BALANCE.roomsPerFloor)completeFloor();else{gameState.room++;enterRoom();}
 }
@@ -429,12 +430,23 @@ function gameOver(){
 function restartGame(){renderHub();}
 async function init(){
   try{
-    const names=['classes','races','enemies','bosses','intents','balance','items','perks','skills'];
+    const names=['classes','races','enemies','bosses','intents','balance','items','perks','skills','loot'];
     const loaded=await Promise.all(names.map(async name=>{const r=await fetch(`data/${name}.json`);if(!r.ok)throw new Error(`${name}: HTTP ${r.status}`);return r.json();}));
-    [CLASSES,RACES,ENEMY_TYPES,BOSSES,INTENTS,BALANCE,ITEMS,PERKS,SKILLS]=loaded;
+    [CLASSES,RACES,ENEMY_TYPES,BOSSES,INTENTS,BALANCE,ITEMS,PERKS,SKILLS,LOOT]=loaded;
     loadRecord();renderHub();
   }catch(error){renderMainArea(`<h2>Unable to load game data</h2><p>Serve this folder over HTTP and reload.</p><p>${escapeHtml(error.message)}</p><button class="btn" onclick="location.reload()">Retry</button>`);}
 }
 
 init();
 
+
+function arcaneBolt(){
+ const p=gameState.player,c=gameState.combat,skill=SKILLS.arcaneBolt;
+ if(p.classId!=='wizard'||!combatAllowed()||gameState.turnPending||c.owner!=='player'||c.playerTurns<p.boltReadyAt||p.resource<skill.cost)return;
+ if(!startPlayerAction())return;
+ p.resource-=skill.cost;p.boltReadyAt=c.playerTurns+skill.cooldown+1;
+ const damage=Math.round(skill.baseDamage+p.level*skill.levelScale+p.intellect*skill.intellectScale);
+ gameState.currentEnemy.hp=Math.max(0,gameState.currentEnemy.hp-damage);
+ updateLog(`Arcane Bolt deals ${damage} arcane damage (ignores Defense).`,'combat');
+ if(gameState.currentEnemy.hp<=0)enemyDefeated();else finishPlayerAction();
+}

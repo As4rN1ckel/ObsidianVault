@@ -1,13 +1,7 @@
 'use strict';
 const label=k=>k.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase());
 let nextItemId=1,panelOpener=null;
-function createItem(id,tierIndex=0){
-  const def=ITEMS[id],tier=def.kind==='material'||id==='potion'?null:BALANCE.tiers[tierIndex];
-  const item={...structuredClone(def),id,uid:nextItemId++,tier:tier?.id||null,name:tier?`${tier.name} ${def.name}`:def.name,price:Math.round(def.price*(tier?.priceMultiplier||1))};
-  if(tier){for(const key of ['flat','percent'])if(item[key])for(const stat in item[key])item[key][stat]*=tier.multiplier;
-    if(item.weaponDamage)item.weaponDamage=Math.round(item.weaponDamage*tier.multiplier);}
-  return item;
-}
+function createItem(id){return {...structuredClone(ITEMS[id]),id,uid:nextItemId++,quantity:1};}
 function recalculate(p){
   const flat={},percent={};
   const effects=[...Object.values(p.equipment).filter(Boolean),...PERKS[p.classId].filter(x=>p.perks.includes(x.id))];
@@ -26,7 +20,7 @@ function recalculate(p){
   p.backpackSlots=Math.max(BALANCE.backpackSlots,Math.floor(value('backpackSlots',BALANCE.backpackSlots)));
   p.hp=clamp(p.hp,0,p.maxHp);p.resource=clamp(p.resource,0,p.maxResource);
 }
-function canManage(){return gameState.started&&!gameState.gameOver&&!gameState.floorTransitioning&&!gameState.turnPending&&(!gameState.inCombat||gameState.combat?.owner==='player');}
+function canManage(){return gameState.started&&!gameState.gameOver&&!gameState.floorTransitioning&&!gameState.turnPending&&!gameState.inCombat;}
 function openPanel(tab){
   if(!canManage()&&!gameState.panel)return;
   if(!gameState.panel)panelOpener=document.activeElement;
@@ -37,7 +31,8 @@ function closePanel(){
   if(!gameState.panel)return;
   gameState.panel=null;gameState.paused=false;$modalOverlay.classList.remove('active');renderUI();
   if(gameState.inCombat)renderCombatUI();
-  if(isMerchant())showMerchant();
+  if(gameState.lootOpen)renderLoot();
+  else if(isMerchant())showMerchant();
   else if(!gameState.inCombat&&gameState.floorLayout[gameState.room-1]==='fountain')showHealingFountain();
   if(panelOpener?.isConnected)panelOpener.focus();
 }
@@ -55,21 +50,21 @@ function renderPanel(message=''){
   <div class="panel-message" role="status">${escapeHtml(message)}</div>${character?characterMarkup(p):inventoryMarkup(p)}`;
 }
 function characterMarkup(p){
-  const explanations={might:'Scales Might weapons and Fighter Block.',agility:'Scales Agility weapons, Dodge and action speed.',intellect:'Scales Intellect weapons and Mana capacity.',vitality:'Grants 7 HP, 0.2 Defense and Stamina capacity per point.',luck:'Increases critical chance and gold finds.'};
+  const explanations={might:'Scales Might weapons and Fighter Block.',agility:'Scales Agility weapons, Dodge and action speed.',intellect:'Scales Intellect weapons and Mana capacity.',vitality:'Grants 5 HP, 0.2 Defense and Stamina capacity per point.',luck:'Increases critical chance and gold finds.'};
   return `<section class="panel-section"><h3>Attributes · ${p.ap} AP available</h3>${BALANCE.attributes.map(k=>`<div class="item-row"><div><strong>${label(k)} · ${Math.round(p[k]*10)/10}</strong><small>Base ${p.attributes[k]} · ${explanations[k]}</small></div><button class="btn" onclick="spendAttribute('${k}')" ${p.ap<1?'disabled':''}>+1 · 1 AP</button></div>`).join('')}</section>
   <section class="panel-section"><h3>Combat stats</h3>${statCards(p)}<p class="help-text">Damage = weapon base + ${BALANCE.damagePerAttribute} × weapon main attribute, then gear modifiers. Defense = gear + floor(Vitality × ${BALANCE.defensePerVitality}). Block halves a hit; Dodge avoids it. Flat bonuses apply before summed percentage modifiers.</p></section>
   <section class="panel-section"><h3>${CLASSES[p.classId].name} perks · ${p.cp} CP available</h3><p class="help-text">Each node costs 1 CP. Small placeholder bonuses; follow the branches to unlock mastery. Unspent AP and CP remain available.</p><div class="perk-tree">${PERKS[p.classId].map((perk,i)=>`${i===1||i===3?'<div class="tree-connector" aria-hidden="true">↓</div>':''}<div class="perk ${p.perks.includes(perk.id)?'learned':''}"><strong>${perk.name}</strong><small>${perk.description}</small><small>${perk.requires.length?'Requires: '+perk.requires.map(id=>PERKS[p.classId].find(x=>x.id===id).name).join(' + '):'Starting node'}</small><button class="btn" onclick="learnPerk('${perk.id}')" ${p.cp<1||p.perks.includes(perk.id)||!perk.requires.every(x=>p.perks.includes(x))?'disabled':''}>${p.perks.includes(perk.id)?'Learned':'Learn · 1 CP'}</button></div>`).join('')}</div></section>`;
 }
-function spendAttribute(key){const p=gameState.player;if(gameState.panel!=='character'||p.ap<1||!BALANCE.attributes.includes(key))return;p.ap--;p.attributes[key]++;recalculate(p);renderUI();renderPanel();}
-function learnPerk(id){const p=gameState.player,perk=PERKS[p.classId].find(x=>x.id===id);if(gameState.panel!=='character'||!perk||p.cp<1||p.perks.includes(id)||!perk.requires.every(x=>p.perks.includes(x)))return;p.cp--;p.perks.push(id);recalculate(p);renderUI();renderPanel();}
+function spendAttribute(key){if(gameState.inCombat)return;const p=gameState.player;if(gameState.panel!=='character'||p.ap<1||!BALANCE.attributes.includes(key))return;p.ap--;p.attributes[key]++;recalculate(p);renderUI();renderPanel();}
+function learnPerk(id){if(gameState.inCombat)return;const p=gameState.player,perk=PERKS[p.classId].find(x=>x.id===id);if(gameState.panel!=='character'||!perk||p.cp<1||p.perks.includes(id)||!perk.requires.every(x=>p.perks.includes(x)))return;p.cp--;p.perks.push(id);recalculate(p);renderUI();renderPanel();}
 function itemDescription(item){return [item.slot?label(item.slot):item.category,...(item.weaponDamage?[`${item.weaponDamage} base Damage + ${label(item.mainAttribute)} scaling`]:[]),...Object.entries(item.flat||{}).map(([k,v])=>`+${Math.round(v*100)/100} ${label(k)}`),...Object.entries(item.percent||{}).map(([k,v])=>`+${percentText(v)} ${label(k)}`),item.description||''].filter(Boolean).join(' · ');}
-function itemRow(item,actions){return `<div class="item-row tier-${item.tier||'none'}"><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(itemDescription(item))}</small></div><div class="item-actions">${actions}</div></div>`;}
+function itemRow(item,actions){return `<div class="item-row"><div><strong>${escapeHtml(item.name)}${(item.quantity||1)>1?' ×'+item.quantity:''}</strong><small>${escapeHtml(itemDescription(item))}</small></div><div class="item-actions">${actions}</div></div>`;}
 function inventoryMarkup(p){
   return `<section class="panel-section"><h3>Equipment</h3>${Object.entries(p.equipment).map(([slot,item])=>item?itemRow(item,`<button class="btn" onclick="unequip('${slot}')">Unequip</button>`):`<div class="item-row"><span>${label(slot)} · Empty</span></div>`).join('')}
   <div class="item-row"><div><strong>Consumable · Healing Potions ${p.potions}/${BALANCE.potionSlots}</strong><small>One equipped potion per belt slot. Drinking consumes an action in combat.</small></div><button class="btn" onclick="stowPotion()" ${p.potions<1||p.inventory.length>=p.backpackSlots?'disabled':''}>Store</button><button class="btn" onclick="drinkOutsideCombat()" ${gameState.inCombat||p.potions<1||p.hp>=p.maxHp?'disabled':''}>Drink</button></div></section>
-  <section class="panel-section"><h3>Backpack · ${p.inventory.length}/${p.backpackSlots} slots</h3><p class="help-text">Each item or material uses one slot. Equip or sell loot to make room. Iron → Steel → Obsidian are quality tiers, not materials.</p>${p.inventory.map(item=>itemRow(item,`${item.slot?`<button class="btn" onclick="equip(${item.uid})">${item.id==='potion'?'Move to belt':'Equip'}</button>`:''}<button class="btn" onclick="discardItem(${item.uid})">Discard</button>`)).join('')||'<p class="help-text">Your backpack is empty. Find loot in battles and treasure rooms.</p>'}</section>`;
+  <section class="panel-section"><h3>Backpack · ${p.inventory.length}/${p.backpackSlots} slots</h3><p class="help-text">Materials stack up to 10 per slot. Equip or sell loot to make room.</p>${p.inventory.map(item=>itemRow(item,`${item.slot?`<button class="btn" onclick="equip(${item.uid})">${item.id==='potion'?'Move to belt':'Equip'}</button>`:''}<button class="btn" onclick="discardItem(${item.uid})">Discard</button>`)).join('')||'<p class="help-text">Your backpack is empty. Find loot in battles and treasure rooms.</p>'}</section>`;
 }
-function equip(uid){
+function equip(uid){if(gameState.inCombat)return;
  const p=gameState.player;if(gameState.panel!=='inventory')return;const index=p.inventory.findIndex(x=>x.uid===uid),item=p.inventory[index];if(!item?.slot)return;
  if(item.id==='potion'){if(p.potions>=BALANCE.potionSlots){renderPanel('Potion belt is full.');return;}p.potions++;p.inventory.splice(index,1);}
  else {
@@ -80,22 +75,43 @@ function equip(uid){
 
  renderUI();renderPanel();
 }
-function unequip(slot){
+function unequip(slot){if(gameState.inCombat)return;
  const p=gameState.player;if(gameState.panel!=='inventory'||!p.equipment[slot])return;
  const old=p.equipment[slot],preview=structuredClone(p);preview.equipment[slot]=null;recalculate(preview);
  if(p.inventory.length+1>preview.backpackSlots){renderPanel('Not enough backpack space to unequip.');return;}
  p.equipment[slot]=null;recalculate(p);p.inventory.push(old);renderUI();renderPanel();
 }
-function discardItem(uid){const p=gameState.player;if(gameState.panel!=='inventory')return;const i=p.inventory.findIndex(x=>x.uid===uid);if(i<0)return;const item=p.inventory[i];p.inventory.splice(i,1);renderPanel(`Discarded ${item.name}.`);}
+function discardItem(uid){if(gameState.inCombat)return;const p=gameState.player;if(gameState.panel!=='inventory')return;const i=p.inventory.findIndex(x=>x.uid===uid);if(i<0)return;const item=p.inventory[i];p.inventory.splice(i,1);renderPanel(`Discarded ${item.name}.`);}
 function drinkOutsideCombat(){const p=gameState.player;if(gameState.panel!=='inventory'||gameState.inCombat||p.potions<1||p.hp>=p.maxHp)return;p.potions--;p.hp=Math.min(p.maxHp,p.hp+Math.floor(p.maxHp*BALANCE.potionHealing));renderUI();renderPanel();}
-function addLoot(item){const p=gameState.player;if(item.id==='potion'&&p.potions<BALANCE.potionSlots){p.potions++;updateLog('Found a healing potion; equipped in belt.','loot');return true;}if(p.inventory.length>=p.backpackSlots){updateLog(`Backpack full: left ${item.name} behind.`,'info');return false;}p.inventory.push(item);updateLog(`Found ${item.name}.`,'loot');return true;}
-function randomEquipment(){const ids=Object.keys(ITEMS).filter(id=>ITEMS[id].slot&&ITEMS[id].slot!=='consumable');const tier=gameState.floor>=20?rand(1,2):gameState.floor>=10?rand(0,1):0;return createItem(ids[rand(0,ids.length-1)],tier);}
-function grantLoot(guaranteed=false){
- const materials=Object.keys(ITEMS).filter(id=>ITEMS[id].kind==='material'&&(gameState.floor>=6||ITEMS[id].category==='Basic'));
- addLoot(createItem(materials[rand(0,materials.length-1)]));
- if(guaranteed||Math.random()<.25)addLoot(randomEquipment());
- if(guaranteed||Math.random()<.3)addLoot(createItem('potion'));
+function addLoot(item){
+ const p=gameState.player;
+ if(item.id==='potion'&&p.potions<BALANCE.potionSlots){p.potions++;return true;}
+ if(item.kind==='material'){
+   let left=item.quantity||1;
+   const stacks=p.inventory.filter(x=>x.id===item.id);
+   const room=stacks.reduce((n,x)=>n+BALANCE.materialStack-x.quantity,0)+(p.backpackSlots-p.inventory.length)*BALANCE.materialStack;
+   if(room<left)return false;
+   for(const stack of stacks){const n=Math.min(left,BALANCE.materialStack-stack.quantity);stack.quantity+=n;left-=n;}
+   while(left>0){const n=Math.min(left,BALANCE.materialStack);p.inventory.push({...item,uid:nextItemId++,quantity:n});left-=n;}return true;
+ }
+ if(p.inventory.length>=p.backpackSlots)return false;p.inventory.push(item);return true;
 }
+function randomEquipment(){const ids=Object.keys(ITEMS).filter(id=>ITEMS[id].slot&&ITEMS[id].slot!=='consumable');return createItem(ids[rand(0,ids.length-1)]);}
+function grantLoot(source='treasure'){
+ const pool=source==='treasure'?{materials:['scrap','leather','cloth','ore','residue','core'],minQuantity:1,maxQuantity:3,equipmentChance:1,potionChance:1}:LOOT[source];
+ if(!pool)throw Error('Missing loot pool: '+source);
+ const item=createItem(pool.materials[rand(0,pool.materials.length-1)]);item.quantity=rand(pool.minQuantity,pool.maxQuantity);
+ gameState.pendingLoot=[item];
+ if(Math.random()<pool.equipmentChance)gameState.pendingLoot.push(randomEquipment());
+ if(Math.random()<pool.potionChance)gameState.pendingLoot.push(createItem('potion'));
+ gameState.lootOpen=true;renderLoot();
+}
+function renderLoot(message=''){
+ renderMainArea(`<div class="scene-title">${gameState.lootTitle||'Treasure recovered'}</div><p class="help-text">Choose what to keep. Open Inventory to discard carried items and make room.</p><p role="status">${escapeHtml(message)}</p><div class="merchant-list">${gameState.pendingLoot.map(item=>itemRow(item,`<button class="btn" onclick="takeLoot(${item.uid})">Take</button><button class="btn" onclick="leaveLoot(${item.uid})">Discard</button>`)).join('')||'<p>All loot resolved.</p>'}</div><button class="btn btn-primary" onclick="finishLoot()" ${gameState.pendingLoot.length?'disabled':''}>Continue →</button>`);
+}
+function takeLoot(uid){if(!gameState.lootOpen||gameState.paused||gameState.inCombat)return;const i=gameState.pendingLoot.findIndex(x=>x.uid===uid);if(i<0)return;if(!addLoot(gameState.pendingLoot[i])){renderLoot('Not enough space. Discard a carried item in Inventory, or discard this drop.');return;}gameState.pendingLoot.splice(i,1);renderUI();renderLoot();}
+function leaveLoot(uid){if(!gameState.lootOpen||gameState.paused)return;gameState.pendingLoot=gameState.pendingLoot.filter(x=>x.uid!==uid);renderLoot();}
+function finishLoot(){if(!gameState.lootOpen||gameState.pendingLoot.length||gameState.paused)return;gameState.lootOpen=false;advanceRoom();}
 function isMerchant(){return gameState.started&&!gameState.gameOver&&!gameState.inCombat&&gameState.floorLayout[gameState.room-1]==='merchant';}
 function showMerchant(announce=false){
  if(!gameState.merchantStock)gameState.merchantStock={potions:rand(2,5),equipment:Array.from({length:rand(2,4)},()=>randomEquipment())};
@@ -108,7 +124,7 @@ function canTrade(){return isMerchant()&&!gameState.paused&&!gameState.turnPendi
 function canReceivePotion(){const p=gameState.player;return p.potions<BALANCE.potionSlots||p.inventory.length<p.backpackSlots;}
 function buyPotion(){const p=gameState.player,s=gameState.merchantStock,cost=ITEMS.potion.price;if(!canTrade()||!s||s.potions<1||p.gold<cost||!canReceivePotion())return;p.gold-=cost;s.potions--;addLoot(createItem('potion'));renderUI();showMerchant();}
 function buyGear(uid){const p=gameState.player,s=gameState.merchantStock;if(!canTrade()||!s)return;const i=s.equipment.findIndex(x=>x.uid===uid),item=s.equipment[i];if(!item||p.gold<item.price||p.inventory.length>=p.backpackSlots)return;p.gold-=item.price;s.equipment.splice(i,1);p.inventory.push(item);renderUI();showMerchant();}
-function sellPrice(item){return Math.max(1,Math.floor(item.price*BALANCE.sellRatio));}
+function sellPrice(item){return Math.max(1,Math.floor(item.price*BALANCE.sellRatio)*(item.quantity||1));}
 function sellItem(uid){const p=gameState.player;if(!canTrade())return;const i=p.inventory.findIndex(x=>x.uid===uid);if(i<0)return;p.gold+=sellPrice(p.inventory[i]);p.inventory.splice(i,1);renderUI();showMerchant();}
 function sellPotion(){const p=gameState.player;if(!canTrade()||p.potions<1)return;p.potions--;p.gold+=sellPrice(ITEMS.potion);renderUI();showMerchant();}
 function winGame(){
@@ -117,4 +133,4 @@ function winGame(){
  renderUI();renderMainArea(`<div class="scene-icon">♛</div><div class="scene-title">The Vault is conquered</div><div class="scene-desc">All ${BALANCE.maxFloor} floors cleared. ${escapeHtml(gameState.player.name)} returns from the depths.</div><button class="btn btn-primary" onclick="renderHub()">Return to Character Hub</button>`);
 }
 
-function stowPotion(){const p=gameState.player;if(gameState.panel!=='inventory'||p.potions<1||p.inventory.length>=p.backpackSlots)return;p.potions--;p.inventory.push(createItem('potion'));renderUI();renderPanel();}
+function stowPotion(){if(gameState.inCombat)return;const p=gameState.player;if(gameState.panel!=='inventory'||p.potions<1||p.inventory.length>=p.backpackSlots)return;p.potions--;p.inventory.push(createItem('potion'));renderUI();renderPanel();}
