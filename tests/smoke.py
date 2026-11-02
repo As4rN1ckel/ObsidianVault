@@ -11,7 +11,7 @@ with sync_playwright() as pw:
  page.locator('#begin-run').click()
  page.evaluate('''() => {
  const assert=(v,m)=>{if(!v)throw Error(m)},p=gameState.player;
- assert(p.maxHp===49&&p.damage===12&&p.maxResource===24,'new wizard stats');
+ assert(p.maxHp===49&&p.damage===9&&p.maxResource===24,'new wizard stats');
  assert(!('tiers' in BALANCE),'tiers removed');
  p.ap=2;p.cp=1;const intellect=p.attributes.intellect;
  gameState.inCombat=true;openPanel('character');assert(!gameState.panel,'combat panel locked');
@@ -45,9 +45,9 @@ with sync_playwright() as pw:
  assert page.evaluate('gameState.room===2&&gameState.lootOpen')
  page.evaluate('''() => {
  const assert=(v,m)=>{if(!v)throw Error(m)};
- for(let seed=0;seed<200;seed++){gameState.runSeed=seed;for(let f=1;f<=30;f++){
+ for(let seed=0;seed<200;seed++){gameState.runSeed=seed;for(let f=1;f<=10;f++){
  const a=generateFloorLayout(f),count=t=>a.filter(x=>x===t).length;
- assert(a.length===10&&a[0]==='entrance'&&a[9]==='boss','boundaries');
+ assert(a.length===10&&a[0]==='entrance'&&a[9]===([5,10].includes(f)?'boss':'elite'),'boundaries');
  assert(count('merchant')===1&&count('fountain')===1&&count('empty')===1,'special counts');
  assert(count('treasure')>=1&&count('treasure')<=2,'treasures');
  for(const t of ['merchant','fountain'])assert(a.indexOf(t)>=2&&a.indexOf(t)<=8,'placement');}}
@@ -59,4 +59,4 @@ with sync_playwright() as pw:
  assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
  assert not errors,errors
  b.close()
-print('PASS: new stats, combat locks, stacks/sales, full-backpack loot recovery, Arcane Bolt, battle downtime, enemy loot pools, 6,000 floor layouts, mobile width; no JS errors.')
+print('PASS: new stats, combat locks, stacks/sales, full-backpack loot recovery, Arcane Bolt, battle downtime, enemy loot pools, 2,000 floor layouts, mobile width; no JS errors.')

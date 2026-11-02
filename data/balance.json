@@ -7,7 +7,7 @@
     "luck"
   ],
   "roomsPerFloor": 10,
-  "maxFloor": 30,
+  "maxFloor": 10,
   "backpackSlots": 14,
   "potionSlots": 6,
   "apPerLevel": 2,
@@ -15,7 +15,7 @@
   "hpBase": 24,
   "hpPerVitality": 5,
   "defensePerVitality": 0.2,
-  "damagePerAttribute": 0.5,
+  "damagePerAttribute": 0.4,
   "resourceBase": 8,
   "resourcePerAttribute": 2,
   "resourceRegen": 2,
@@ -35,12 +35,34 @@
   "xpPerLevel": 25,
   "enemyHpBase": 18,
   "enemyHpPerFloor": 6,
-  "bossHpBase": 42,
-  "bossHpPerFloor": 16,
   "enemyDamageBase": 4,
   "enemyDamagePerFloor": 1.2,
-  "bossDamageBase": 7,
-  "bossDamagePerFloor": 1.8,
   "materialStack": 10,
-  "skillSlots": 3
+  "skillSlots": 3,
+  "encounters": {
+    "normal": {
+      "hpMultiplier": 1,
+      "damageMultiplier": 1,
+      "defenseBonus": 0,
+      "xpMultiplier": 1
+    },
+    "elite": {
+      "hpMultiplier": 1.5,
+      "damageMultiplier": 1.15,
+      "defenseBonus": 1,
+      "xpMultiplier": 1.8
+    },
+    "boss": {
+      "hpMultiplier": 1.9,
+      "damageMultiplier": 1.2,
+      "defenseBonus": 1,
+      "xpMultiplier": 2.5
+    },
+    "warden": {
+      "hpMultiplier": 2.2,
+      "damageMultiplier": 1.25,
+      "defenseBonus": 2,
+      "xpMultiplier": 3
+    }
+  }
 }

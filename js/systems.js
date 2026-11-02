@@ -130,7 +130,7 @@ function sellPotion(){const p=gameState.player;if(!canTrade()||p.potions<1)retur
 function winGame(){
  cancelPendingActions();gameState.gameOver=true;gameState.inCombat=false;
  if(gameState.highScoreFloor<=BALANCE.maxFloor){gameState.highScoreFloor=BALANCE.maxFloor;gameState.highScoreRoom=BALANCE.roomsPerFloor;gameState.highScoreLevel=Math.max(gameState.highScoreLevel,gameState.player.level);saveRecord();}
- renderUI();renderMainArea(`<div class="scene-icon">♛</div><div class="scene-title">The Vault is conquered</div><div class="scene-desc">All ${BALANCE.maxFloor} floors cleared. ${escapeHtml(gameState.player.name)} returns from the depths.</div><button class="btn btn-primary" onclick="renderHub()">Return to Character Hub</button>`);
+ renderUI();renderMainArea(`<div class="scene-icon">♛</div><div class="scene-title">The Warden has fallen</div><div class="scene-desc">All ${BALANCE.maxFloor} floors cleared through Whisperwind Plains and Thornveil Forest. ${escapeHtml(gameState.player.name)} returns from the depths.</div><button class="btn btn-primary" onclick="renderHub()">Return to Character Hub</button>`);
 }
 
 function stowPotion(){if(gameState.inCombat)return;const p=gameState.player;if(gameState.panel!=='inventory'||p.potions<1||p.inventory.length>=p.backpackSlots)return;p.potions--;p.inventory.push(createItem('potion'));renderUI();renderPanel();}

@@ -1,98 +1,40 @@
 [
   {
-    "id": "guardian",
-    "name": "Tower Guardian",
-    "hp": 6,
+    "id": "packLeader",
+    "name": "Whisperwind Pack Alpha",
+    "biome": "plains",
+    "kind": "boss",
+    "hp": 5,
     "damage": 0,
-    "defense": 2,
-    "speed": 0,
-    "abilities": [
-      "armor",
-      "enrage"
-    ]
-  },
-  {
-    "id": "knight",
-    "name": "Dark Knight",
-    "hp": 5,
-    "damage": 1,
-    "defense": 2,
-    "speed": 1,
-    "abilities": [
-      "prepare",
-      "enrage"
-    ]
-  },
-  {
-    "id": "dragon",
-    "name": "Dragon Whelp",
-    "hp": 5,
-    "damage": 1,
     "defense": 1,
     "speed": 2,
     "abilities": [
-      "poison",
-      "prepare"
-    ]
+      "pounce",
+      "packHowl"
+    ],
+    "symbol": "\ud83d\udc3a"
   },
   {
-    "id": "lich",
-    "name": "Lich Lord",
-    "hp": -6,
+    "id": "treantGuardian",
+    "name": "Thornveil Treant Guardian",
+    "biome": "forest",
+    "kind": "warden",
+    "hp": 8,
     "damage": 0,
-    "defense": 0,
-    "speed": 2,
-    "abilities": [
-      "drain",
-      "armor"
-    ]
-  },
-  {
-    "id": "demon",
-    "name": "Demon Prince",
-    "hp": 6,
-    "damage": 2,
     "defense": 1,
-    "speed": 2,
+    "speed": -2,
     "abilities": [
-      "drain",
-      "enrage"
-    ]
-  },
-  {
-    "id": "archmage",
-    "name": "Archmage",
-    "hp": -8,
-    "damage": 1,
-    "defense": 0,
-    "speed": 2,
-    "abilities": [
-      "poison",
-      "armor"
-    ]
-  },
-  {
-    "id": "behemoth",
-    "name": "Behemoth",
-    "hp": 17,
-    "damage": 2,
-    "defense": 2,
-    "speed": -3,
-    "abilities": [
-      "prepare",
-      "enrage"
-    ]
-  },
-  {
-    "id": "shadow",
-    "name": "Shadow King",
-    "hp": 5,
-    "damage": 1,
-    "defense": 1,
-    "speed": 4,
-    "abilities": [
-      "drain",
-      "prepare"
-    ]
+      "constrict",
+      "livingBark"
+    ],
+    "symbol": "\u265c",
+    "phase2": {
+      "threshold": 0.5,
+      "damageMultiplier": 1.15,
+      "abilities": [
+        "constrict",
+        "wildRoots"
+      ]
+    }
   }
 ]

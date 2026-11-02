@@ -1,6 +1,6 @@
 # Obsidian Vault
 
-A browser dungeon crawler: 30 floors, 10 rooms per floor. No build step or package dependencies.
+A browser dungeon crawler: 10 floors, 10 rooms per floor. No build step or package dependencies.
 
 ## Run
 
@@ -22,7 +22,7 @@ Open the server in a browser. HTTP serving is required because game definitions 
 - Backpack starts at 14 slots; gear takes one slot and materials stack to 10 per slot. The potion belt holds six healing potions. Gear can expand backpack capacity; removing it cannot overflow inventory.
 - Items have individual definitions without quality tiers. Flat bonuses apply first, then summed percentage modifiers.
 - Merchants have 2–5 potions and limited equipment. Sell spare gear and materials at 35% value. Materials currently have no crafting use.
-- Each floor has one entrance, one boss, one fountain and one merchant (rooms 3–9), one or two treasure rooms (rooms 2–9), one empty room, and enemies in remaining rooms. Defeat the floor-30 boss to win.
+- Each floor has one entrance, one guardian, one fountain and one merchant (rooms 3–9), one or two treasure rooms (rooms 2–9), one empty room, and enemies in remaining rooms. Rooms 10 on floors 1–4 and 6–9 contain elites; floors 5 and 10 end in a boss and Warden respectively. Defeat the floor-10 Warden to win.
 
 Only the personal best is saved in browser local storage; active runs are not saved.
 
@@ -31,9 +31,10 @@ Only the personal best is saved in browser local storage; active runs are not sa
 - `index.html`: page structure.
 - `css/styles.css`: visual theme and responsive panels.
 - `js/game.js`: loading, character creation, exploration, combat and levelling.
+- `js/enemies.js`: biome encounter selection, guardian scaling, enemy intent execution, and Warden phase changes.
 - `js/skills.js`: talent/loadout presentation, independent skill cooldowns, skill effects and enemy DoT processing.
 - `js/systems.js`: derived stats, equipment, inventory, merchants, loot, progression panels.
-- `data/`: classes, races, enemies, bosses, skills, intents, perks, items, enemy loot pools and balance constants. Tune these definitions without editing the combat loop. Item `flat` and `percent` maps can modify attributes and derived stats; percentages use decimal fractions (0.05 = 5%). Rates such as `critChance` use decimal fractions for flat bonuses too (0.02 = two percentage points).
+- `data/`: classes, races, biomes, enemies, bosses, skills, intents, perks, items, enemy loot pools and balance constants. Tune these definitions without editing the combat loop. Item `flat` and `percent` maps can modify attributes and derived stats; percentages use decimal fractions (0.05 = 5%). Rates such as `critChance` use decimal fractions for flat bonuses too (0.02 = two percentage points).
 
 ## Validation
 
@@ -43,9 +44,9 @@ With the server running, Python Playwright and system Chromium installed:
 python3 tests/smoke.py
 ```
 
-The smoke test checks new starting stats, combat management locks, material stacks and sales, full-backpack loot recovery, Arcane Bolt, manual battle downtime, enemy loot pools, 6,000 floor layouts and mobile width. Balance values remain initial tuning; a full-run balance playtest is still needed.
+The smoke test checks new starting stats, combat management locks, material stacks and sales, full-backpack loot recovery, Arcane Bolt, manual battle downtime, enemy loot pools, 2,000 floor layouts and mobile width. Balance values remain initial tuning; a full-run balance playtest is still needed.
 
-Balance update: lower starting HP/attributes and resource capacity; 2 resource regeneration per turn; 30% potion healing; weapon attribute scaling 0.5. Wizards gain Arcane Bolt (3-turn cooldown, level + Intellect scaling, ignores Defense), alongside Magic Shield (5-turn cooldown). Normal enemies drop materials and occasional potions; bosses and treasure can drop equipment. All drops use an explicit take/discard screen; battles wait for manual Continue. Equipment and AP/CP spending are locked during combat.
+Balance update: lower starting HP/attributes and resource capacity; 2 resource regeneration per turn; 30% potion healing; weapon attribute scaling 0.4. Wizards gain Arcane Bolt (3-turn cooldown, level + Intellect scaling, ignores Defense), alongside Magic Shield (5-turn cooldown). Normal enemies drop materials and occasional potions; bosses and treasure can drop equipment. All drops use an explicit take/discard screen; battles wait for manual Continue. Equipment and AP/CP spending are locked during combat.
 
 
 ## Talents & Skills
@@ -64,3 +65,23 @@ Players have three active slots shared by starting and unlocked skills. Basic At
 Stat nodes offer small bonuses. Combat nodes unlock two skills and enhance a signature skill. Utility nodes recover 2 resources and 5% HP after battles. Mastery adds a starting shield for Fighters, Stamina from poison ticks for Rogues, or Mana return from Arcane Bolt for Wizards.
 
 Run `python3 tests/talents.py` alongside the smoke test to validate CP prerequisites, slot limits, combat locks, resource costs, cooldowns, stun/DoT timing, and defense bypass. These checks verify mechanics, not full-run balance.
+
+
+## Biomes and enemies
+
+Only floors 1–10 are available. Encounters never mix biome pools.
+
+| Floors | Biome | Normal enemies | Room-10 guardian |
+| --- | --- | --- | --- |
+| 1–5 | Whisperwind Plains | Wolf, Boar, Slime, Wind Sprite, Giant Rat | Elite Slime/Boar/Rat/Wind Sprite on 1–4; Whisperwind Pack Alpha on 5 |
+| 6–10 | Thornveil Forest | Stirge, Spider, Carnivore Plant, Vine Blight, Forest Sprite | Elite variant from the Forest pool on 6–9; Thornveil Treant Guardian on 10 |
+
+Normal enemies each have one special ability. Elites have 1.5× HP, 1.15× Damage, +1 Defense and an extra Savage Strike. Bosses use 1.9× HP and 1.2× Damage; the Warden uses 2.2× HP and 1.25× Damage. These multipliers apply to normal floor-scaled stats with each template's offsets. Normal enemy baseline strength has not been globally increased.
+
+The Alpha has Lunging Bite and a one-use howl that boosts Damage by 20%. The Warden has Constricting Vines and Living Bark. At 50% HP it permanently switches to phase 2: armor is removed, Damage increases 15%, and Living Bark is replaced by Wrath of the Roots. Awakening consumes one non-damaging enemy action; the transition happens only once, including when DoTs cross the threshold.
+
+`data/biomes.json` controls floor ranges, normal pools, elite pools, and bosses. Guardian selection is seeded for each floor. `data/intents.json` contains ability descriptions and effect parameters. Both ordinary and elite loot pools live in `data/loot.json`, with elites using `elite_<enemyId>` keys. All enemy pools default to `goldDrop: false` and `goldAmount: 0`. Set both `goldDrop: true` and a positive `goldAmount` to enable a kill reward; Luck's gold modifier then applies. Treasure, floor-clear rewards, and merchant sales still provide gold. Normal enemies drop materials/potions, elites have a 50% equipment chance, and bosses/Warden guarantee equipment.
+
+Starter weapon base Damage is 7 for the Sword and 6 for Staff/Dagger; main-attribute contribution is 0.4 per point. Full-run difficulty and merchant economy still need playtesting with these lower weapon values and no regular kill gold.
+
+Run `python3 tests/enemies.py` for biome boundaries, enemy abilities, elite scaling, gold settings, Warden phases and the final victory flow.

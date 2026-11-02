@@ -1,0 +1,45 @@
+[
+  {
+    "id": "plains",
+    "name": "Whisperwind Plains",
+    "minFloor": 1,
+    "maxFloor": 5,
+    "enemies": [
+      "wolf",
+      "boar",
+      "slime",
+      "windSprite",
+      "rat"
+    ],
+    "elitePool": [
+      "slime",
+      "boar",
+      "rat",
+      "windSprite"
+    ],
+    "bossFloor": 5,
+    "boss": "packLeader"
+  },
+  {
+    "id": "forest",
+    "name": "Thornveil Forest",
+    "minFloor": 6,
+    "maxFloor": 10,
+    "enemies": [
+      "stirge",
+      "spider",
+      "carnivorePlant",
+      "vineBlight",
+      "forestSprite"
+    ],
+    "elitePool": [
+      "spider",
+      "carnivorePlant",
+      "vineBlight",
+      "forestSprite",
+      "stirge"
+    ],
+    "bossFloor": 10,
+    "boss": "treantGuardian"
+  }
+]

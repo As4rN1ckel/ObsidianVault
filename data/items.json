@@ -3,21 +3,21 @@
     "name": "Sword",
     "slot": "weapon",
     "mainAttribute": "might",
-    "weaponDamage": 9,
+    "weaponDamage": 7,
     "price": 30
   },
   "staff": {
     "name": "Staff",
     "slot": "weapon",
     "mainAttribute": "intellect",
-    "weaponDamage": 8,
+    "weaponDamage": 6,
     "price": 30
   },
   "dagger": {
     "name": "Dagger",
     "slot": "weapon",
     "mainAttribute": "agility",
-    "weaponDamage": 8,
+    "weaponDamage": 6,
     "price": 30
   },
   "shield": {

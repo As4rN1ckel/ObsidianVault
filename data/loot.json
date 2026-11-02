@@ -1,95 +1,100 @@
 {
-  "goblin": {
+  "wolf": {
     "materials": [
-      "scrap",
-      "ore"
+      "leather",
+      "core"
     ],
     "minQuantity": 1,
     "maxQuantity": 3,
     "equipmentChance": 0,
-    "potionChance": 0.2
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "boar": {
+    "materials": [
+      "leather",
+      "core"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
   },
   "slime": {
     "materials": [
-      "scrap",
+      "residue"
+    ],
+    "minQuantity": 1,
+    "maxQuantity": 3,
+    "equipmentChance": 0,
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "windSprite": {
+    "materials": [
+      "residue",
       "cloth"
     ],
     "minQuantity": 1,
     "maxQuantity": 3,
     "equipmentChance": 0,
-    "potionChance": 0.2
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
   },
   "rat": {
     "materials": [
       "leather",
-      "core"
+      "cloth"
     ],
     "minQuantity": 1,
     "maxQuantity": 3,
     "equipmentChance": 0,
-    "potionChance": 0.2
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
   },
-  "bandit": {
+  "stirge": {
     "materials": [
-      "scrap",
-      "ore"
+      "core",
+      "leather"
     ],
     "minQuantity": 1,
     "maxQuantity": 3,
     "equipmentChance": 0,
-    "potionChance": 0.2
-  },
-  "skeleton": {
-    "materials": [
-      "scrap",
-      "ore"
-    ],
-    "minQuantity": 1,
-    "maxQuantity": 3,
-    "equipmentChance": 0,
-    "potionChance": 0.2
-  },
-  "wraith": {
-    "materials": [
-      "cloth",
-      "residue"
-    ],
-    "minQuantity": 1,
-    "maxQuantity": 3,
-    "equipmentChance": 0,
-    "potionChance": 0.2
-  },
-  "orc": {
-    "materials": [
-      "leather",
-      "core"
-    ],
-    "minQuantity": 1,
-    "maxQuantity": 3,
-    "equipmentChance": 0,
-    "potionChance": 0.2
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
   },
   "spider": {
     "materials": [
-      "leather",
+      "cloth",
       "core"
     ],
     "minQuantity": 1,
     "maxQuantity": 3,
     "equipmentChance": 0,
-    "potionChance": 0.2
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
   },
-  "bat": {
+  "carnivorePlant": {
     "materials": [
-      "leather",
-      "core"
+      "residue",
+      "cloth"
     ],
     "minQuantity": 1,
     "maxQuantity": 3,
     "equipmentChance": 0,
-    "potionChance": 0.2
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
   },
-  "imp": {
+  "vineBlight": {
     "materials": [
       "cloth",
       "residue"
@@ -97,29 +102,22 @@
     "minQuantity": 1,
     "maxQuantity": 3,
     "equipmentChance": 0,
-    "potionChance": 0.2
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
   },
-  "guardian": {
+  "forestSprite": {
     "materials": [
-      "scrap",
-      "ore"
+      "residue"
     ],
     "minQuantity": 1,
     "maxQuantity": 3,
-    "equipmentChance": 1,
-    "potionChance": 0.5
+    "equipmentChance": 0,
+    "potionChance": 0.2,
+    "goldDrop": false,
+    "goldAmount": 0
   },
-  "knight": {
-    "materials": [
-      "scrap",
-      "ore"
-    ],
-    "minQuantity": 1,
-    "maxQuantity": 3,
-    "equipmentChance": 1,
-    "potionChance": 0.5
-  },
-  "dragon": {
+  "packLeader": {
     "materials": [
       "leather",
       "core"
@@ -127,56 +125,138 @@
     "minQuantity": 1,
     "maxQuantity": 3,
     "equipmentChance": 1,
-    "potionChance": 0.5
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
   },
-  "lich": {
+  "treantGuardian": {
     "materials": [
-      "cloth",
+      "core",
       "residue"
     ],
     "minQuantity": 1,
     "maxQuantity": 3,
     "equipmentChance": 1,
-    "potionChance": 0.5
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
   },
-  "demon": {
-    "materials": [
-      "cloth",
-      "residue"
-    ],
-    "minQuantity": 1,
-    "maxQuantity": 3,
-    "equipmentChance": 1,
-    "potionChance": 0.5
-  },
-  "archmage": {
-    "materials": [
-      "cloth",
-      "residue"
-    ],
-    "minQuantity": 1,
-    "maxQuantity": 3,
-    "equipmentChance": 1,
-    "potionChance": 0.5
-  },
-  "behemoth": {
+  "elite_wolf": {
     "materials": [
       "leather",
       "core"
     ],
-    "minQuantity": 1,
-    "maxQuantity": 3,
-    "equipmentChance": 1,
-    "potionChance": 0.5
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
   },
-  "shadow": {
+  "elite_boar": {
+    "materials": [
+      "leather",
+      "core"
+    ],
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "elite_slime": {
+    "materials": [
+      "residue"
+    ],
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "elite_windSprite": {
+    "materials": [
+      "residue",
+      "cloth"
+    ],
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "elite_rat": {
+    "materials": [
+      "leather",
+      "cloth"
+    ],
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "elite_stirge": {
+    "materials": [
+      "core",
+      "leather"
+    ],
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "elite_spider": {
+    "materials": [
+      "cloth",
+      "core"
+    ],
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "elite_carnivorePlant": {
+    "materials": [
+      "residue",
+      "cloth"
+    ],
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "elite_vineBlight": {
     "materials": [
       "cloth",
       "residue"
     ],
-    "minQuantity": 1,
-    "maxQuantity": 3,
-    "equipmentChance": 1,
-    "potionChance": 0.5
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
+  },
+  "elite_forestSprite": {
+    "materials": [
+      "residue"
+    ],
+    "minQuantity": 2,
+    "maxQuantity": 5,
+    "equipmentChance": 0.5,
+    "potionChance": 0.5,
+    "goldDrop": false,
+    "goldAmount": 0
   }
 }

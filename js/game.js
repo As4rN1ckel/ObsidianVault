@@ -1,7 +1,7 @@
 
 'use strict';
 // Turn-based exploration and combat; definitions are loaded from /data.
-let CLASSES, RACES, ENEMY_TYPES, BOSSES, INTENTS, BALANCE, ITEMS, PERKS, SKILLS, LOOT;
+let CLASSES, RACES, ENEMY_TYPES, BOSSES, INTENTS, BALANCE, ITEMS, PERKS, SKILLS, LOOT, BIOMES;
 const gameState = {
   player:null, started:false, floor:1, room:1, roomsCompleted:[], totalRoomsCleared:0,
   floorLayout:[],currentEnemy:null,combat:null,inCombat:false,gameOver:false,paused:false,
@@ -105,7 +105,7 @@ function renderUI(){
   $('talents-button').textContent=`Talents & Skills · ${p.cp} CP`;
   $('talents-button').disabled=!canManage();
   $('character-button').disabled=$('inventory-button').disabled=!canManage();
-  $('floor-room-text').textContent=`Floor ${gameState.floor}/${BALANCE.maxFloor} • Room ${gameState.room}/${BALANCE.roomsPerFloor}`;
+  $('floor-room-text').textContent=`Floor ${gameState.floor}/${BALANCE.maxFloor} • Room ${gameState.room}/${BALANCE.roomsPerFloor} · ${biomeForFloor(gameState.floor).name}`;
   renderRoomDots();
 }
 
@@ -116,7 +116,7 @@ function renderRoomDots(){
     if(i===BALANCE.roomsPerFloor)el.classList.add('boss');
     if(gameState.roomsCompleted.includes(i))el.classList.add('completed');
     else if(i===gameState.room&&!gameState.gameOver)el.classList.add('current');
-    el.title=`Room ${i}${i===BALANCE.roomsPerFloor?' · Boss':''}`;holder.appendChild(el);
+    el.title=`Room ${i}${i===BALANCE.roomsPerFloor?' · '+label(guardianKind(gameState.floor)):''}`;holder.appendChild(el);
   }
 }
 function completeRoom(){if(!gameState.roomsCompleted.includes(gameState.room)){
@@ -124,7 +124,7 @@ function completeRoom(){if(!gameState.roomsCompleted.includes(gameState.room)){
 }renderUI();}
 function generateFloorLayout(floorNum){
   const rng=seededRandom(gameState.runSeed+floorNum*7919+42),layout=Array(BALANCE.roomsPerFloor).fill('enemy');
-  layout[0]='entrance';layout[layout.length-1]='boss';
+  layout[0]='entrance';layout[layout.length-1]=guardianKind(floorNum)==='elite'?'elite':'boss';
   const take=(lo,hi,type)=>{const free=[];for(let i=lo-1;i<hi;i++)if(layout[i]==='enemy')free.push(i);const at=free[Math.floor(rng()*free.length)];layout[at]=type;};
   take(3,9,'fountain');take(3,9,'merchant');
   for(let i=0,n=rng()<.5?1:2;i<n;i++)take(2,9,'treasure');
@@ -141,6 +141,7 @@ function enterRoom(){
   switch(gameState.floorLayout[gameState.room-1]){
     case 'entrance':showEntrance();break;
     case 'enemy':startCombat(generateMonster(gameState.floor));break;
+    case 'elite':
     case 'boss':startCombat(generateBoss(gameState.floor),true);break;
     case 'treasure':showTreasureChest();break;
     case 'fountain':showHealingFountain();break;
@@ -148,36 +149,8 @@ function enterRoom(){
     case 'empty':showEmptyRoom();break;
   }
 }
-function showEntrance(){renderMainArea(`<div class="scene-icon">🚪</div><div class="scene-title">Floor ${gameState.floor} — Entrance Hall</div><div class="scene-desc">Ancient doors open onto a shadowy passage. The Vault waits below.</div><div class="action-buttons"><button class="btn btn-primary" onclick="advanceRoom()">Continue Deeper →</button></div>`);}
+function showEntrance(){renderMainArea(`<div class="scene-icon">🚪</div><div class="scene-title">${biomeForFloor(gameState.floor).name} — Floor ${gameState.floor}</div><div class="scene-desc">Ancient doors open onto a shadowy passage. The Vault waits below.</div><div class="action-buttons"><button class="btn btn-primary" onclick="advanceRoom()">Continue Deeper →</button></div>`);}
 function showEmptyRoom(){updateLog('You find an empty chamber.','info');renderMainArea(`<div class="scene-icon">🕯️</div><div class="scene-title">A Quiet Chamber</div><div class="scene-desc">A moment of silence before the danger returns.</div><div class="action-buttons"><button class="btn btn-primary" onclick="advanceRoom()">Continue →</button></div>`);}
-function instantiateEnemy(template,floor,boss=false){
-  const hp=(boss?BALANCE.bossHpBase+floor*BALANCE.bossHpPerFloor:BALANCE.enemyHpBase+floor*BALANCE.enemyHpPerFloor)+template.hp;
-  return {id:template.id,name:template.name+(boss?` (Floor ${floor})`:''),hp,maxHp:hp,
-    damage:Math.round(boss?BALANCE.bossDamageBase+floor*BALANCE.bossDamagePerFloor:BALANCE.enemyDamageBase+floor*BALANCE.enemyDamagePerFloor)+template.damage,
-    defense:Math.max(0,(boss?2:1)+Math.floor(floor/3)+template.defense),
-    speed:Math.max(3,9+template.speed+Math.floor(floor/5)),
-    abilities:[...template.abilities],xpReward:(boss?42+floor*10:18+floor*4),
-    goldReward:rand(boss?25:6,boss?40+floor*5:13+floor*3),
-    isBoss:boss, charged:false,enraged:false,armorHits:0,armorBonus:0,intent:null};
-}
-function generateMonster(floor){return instantiateEnemy(ENEMY_TYPES[rand(0,ENEMY_TYPES.length-1)],floor);}
-function generateBoss(floor){return instantiateEnemy(BOSSES[(floor-1)%BOSSES.length],floor,true);}
-function getEnemySymbol(id){
-  if(/skeleton|lich|wraith|shadow/.test(id))return '☠';if(/dragon|demon|imp/.test(id))return '♜';
-  if(/spider|bat|rat/.test(id))return '✹';if(/slime/.test(id))return '◉';
-  if(/guardian|knight|orc|behemoth/.test(id))return '♞';if(/archmage/.test(id))return '✧';return '⚔';
-}
-function selectEnemyIntent(enemy){
-  if(enemy.charged){enemy.intent='heavy';return;}
-  if(enemy.abilities.includes('enrage')&&!enemy.enraged&&enemy.hp<=enemy.maxHp*.4){enemy.intent='enrage';return;}
-  const specials=enemy.abilities.filter(x=>x!=='enrage');
-  enemy.intent=specials.length&&Math.random()<.34?specials[rand(0,specials.length-1)]:'attack';
-}
-function refreshEnemyIntent(){
-  const e=gameState.currentEnemy;if(!e||!gameState.inCombat)return;
-  if(e.charged){e.intent='heavy';return;}
-  if(e.abilities.includes('enrage')&&!e.enraged&&e.hp<=e.maxHp*.4)e.intent='enrage';
-}
 function getCombatStatus(){
   const p=gameState.player,e=gameState.currentEnemy,parts=[];
   if(p.blockHp>0)parts.push(`◆ Block ${p.blockHp} HP`);
@@ -188,7 +161,7 @@ function getCombatStatus(){
   if(e.armorHits>0)parts.push(`Enemy armor: +${e.armorBonus} for ${e.armorHits} hits`);
   if(e.stunTurns)parts.push(`Stunned: ${e.stunTurns} enemy action`);
   for(const [id,dot] of Object.entries(e.dots||{}))parts.push(`${label(id)}: ${dot.damage} × ${dot.turns}`);
-  if(e.enraged)parts.push('Enemy enraged: +30% Damage');
+  if(e.kind==='warden')parts.push(`Warden phase ${e.phase}/2`);
   return parts;
 }
 function startCombat(enemy,boss=false){
@@ -200,7 +173,7 @@ function startCombat(enemy,boss=false){
   gameState.combat={owner:null,playerTurns:0,enemyTurns:0,
     playerNext:100/p.speed,enemyNext:100/enemy.speed};
   selectEnemyIntent(enemy);
-  updateLog(boss?`⚠ BOSS: ${enemy.name} guards the vault!`:`${enemy.name} blocks your path.`,boss?'boss':'combat');
+  updateLog(`${label(enemy.kind)}: ${enemy.name} blocks your path.`,enemy.isBoss?'boss':'combat');
   renderCombatUI();
   continueCombat();
 }
@@ -239,7 +212,7 @@ function renderCombatUI(){
   const extra=getCombatStatus();
   renderMainArea(`
     <div class="enemy-display">
-      <div class="enemy-eyebrow">${e.isBoss?'☠ FLOOR GUARDIAN':'⚔ HOSTILE ENCOUNTER'}</div>
+      <div class="enemy-eyebrow">${e.kind==='warden'?`♜ WARDEN · PHASE ${e.phase}/2`:e.isBoss?'☠ BIOME BOSS':e.isElite?'◆ ELITE GUARDIAN':'⚔ '+biomeForFloor(gameState.floor).name.toUpperCase()}</div>
       <div class="enemy-portrait" aria-hidden="true"><span>${getEnemySymbol(e.id)}</span></div>
       <div class="enemy-name">${escapeHtml(e.name)}</div>
       <div class="enemy-stats"><span>⚔ DMG ${e.damage}</span><span>◆ DEF ${e.defense+e.armorBonus*(e.armorHits>0)}</span><span>➤ SPD ${e.speed}</span></div>
@@ -292,10 +265,10 @@ function usePotion(){
   p.potions--;const heal=Math.min(p.maxHp-p.hp,Math.max(1,Math.floor(p.maxHp*BALANCE.potionHealing)));
   p.hp+=heal;updateLog(`You drink a potion and recover ${heal} HP.`,'heal');finishPlayerAction();
 }
-function enemyAttack(multiplier=1,poison=false,drain=false){
+function enemyAttack(multiplier=1){
   const e=gameState.currentEnemy,p=gameState.player;
   if(p.dodgeReady||Math.random()<p.dodgeChance){p.dodgeReady=false;updateLog(`You evade ${e.name}'s attack completely!`,'heal');return 0;}
-  const base=calculateDamage(Math.max(1,Math.round(e.damage*(e.enraged?1.3:1)*multiplier)+rand(-1,2)),p.defense);
+  const base=calculateDamage(Math.max(1,Math.round(e.damage*multiplier)+rand(-1,2)),p.defense);
   let dmg=base;
   if(Math.random()<p.blockChance){dmg=Math.floor(dmg*.5);updateLog('You block half the incoming damage.','heal');}
   if(p.magicShieldTurns>0)dmg=Math.max(1,Math.ceil(dmg*(1-SKILLS.wizard.reduction)));
@@ -313,42 +286,22 @@ function enemyAttack(multiplier=1,poison=false,drain=false){
     const reflected=Math.max(1,Math.round(dmg*SKILLS.wizard.reflection));e.hp=Math.max(0,e.hp-reflected);
     updateLog(`Magic Shield reflects ${reflected} damage!`,'combat');
   }
-  if(poison&&p.hp>0){p.poisonTurns=3;p.poisonDamage=2+Math.floor(gameState.floor/3);updateLog(`Poisoned! ${p.poisonDamage} damage at the start of your next 3 turns.`,'combat');}
-  if(drain&&dmg>0&&e.hp>0){const healed=Math.min(e.maxHp-e.hp,Math.max(1,Math.round(dmg*.7)));e.hp+=healed;if(healed)updateLog(`${e.name} drains ${healed} HP.`,'heal');}
   return dmg;
-}
-function resolveEnemyAction(){
-  if(!combatAllowed())return;
-  const e=gameState.currentEnemy,p=gameState.player,action=e.intent||'attack';
-  if(tickEnemyEffects(e))return;
-  if(e.stunTurns>0){e.stunTurns--;if(p.magicShieldTurns>0)p.magicShieldTurns--;updateLog(`${e.name} is stunned and skips an action.`,'info');return;}
-  if(action==='prepare'){e.charged=true;updateLog(`${e.name} prepares a devastating attack!`,'boss');}
-  else if(action==='armor'){e.armorBonus=3;e.armorHits=2;updateLog(`${e.name} raises armor: +3 Defense for 2 incoming attacks.`,'info');}
-  else if(action==='enrage'){e.enraged=true;updateLog(`${e.name} ENRAGES! Damage increased by 30%.`,'boss');}
-  else if(action==='heavy'){e.charged=false;enemyAttack(1.7);}
-  else if(action==='poison')enemyAttack(.7,true);
-  else if(action==='drain')enemyAttack(.8,false,true);
-  else enemyAttack();
-  // Magic Shield lasts 2 enemy actions, including non-damaging enemy actions.
-  if(p.magicShieldTurns>0)p.magicShieldTurns--;
-  if(p.hp<=0){gameOver();return;}
-  if(e.hp<=0){enemyDefeated();return;}
-  selectEnemyIntent(e);
 }
 function awardGold(gold){const p=gameState.player,amount=Math.max(0,Math.round(gold*(1+Math.min(.30,p.luck*.012))));p.gold+=amount;p.totalGoldEarned+=amount;return amount;}
 function enemyDefeated(){
   if(!gameState.inCombat||!gameState.currentEnemy)return;
   const e=gameState.currentEnemy,p=gameState.player;
   cancelPendingActions();gameState.turnPending=true;
-  const gold=awardGold(e.goldReward);p.xp+=e.xpReward;
-  updateLog(`${e.name} defeated! +${e.xpReward} XP and +${gold} Gold.`,'loot');
+  const gold=awardGold(enemyGold(e));p.xp+=e.xpReward;
+  updateLog(`${e.name} defeated! +${e.xpReward} XP${gold?` and +${gold} Gold`:''}.`,'loot');
   gameState.inCombat=false;gameState.currentEnemy=null;gameState.combat=null;
   p.poisonTurns=0;p.poisonDamage=0;p.blockHp=0;p.magicShieldTurns=0;p.dodgeReady=false;p.dodgeBonus=false;
   if(p.perks.includes('utility'))p.resource=Math.min(p.maxResource,p.resource+2);
   if(p.perks.includes('recovery'))p.hp=Math.min(p.maxHp,p.hp+Math.max(1,Math.floor(p.maxHp*.05)));
   gameState.turnPending=false;completeRoom();checkLevelUp();
-  gameState.lootTitle=`Victory! +${e.xpReward} XP · +${gold} Gold`;
-  grantLoot(e.id);
+  gameState.lootTitle=`Victory! +${e.xpReward} XP${gold?` · +${gold} Gold`:''}`;
+  grantLoot(e.lootId||e.id);
 
 }
 function checkLevelUp(onComplete=()=>{}){
@@ -419,9 +372,9 @@ function gameOver(){
 function restartGame(){renderHub();}
 async function init(){
   try{
-    const names=['classes','races','enemies','bosses','intents','balance','items','perks','skills','loot'];
+    const names=['classes','races','enemies','bosses','intents','balance','items','perks','skills','loot','biomes'];
     const loaded=await Promise.all(names.map(async name=>{const r=await fetch(`data/${name}.json`);if(!r.ok)throw new Error(`${name}: HTTP ${r.status}`);return r.json();}));
-    [CLASSES,RACES,ENEMY_TYPES,BOSSES,INTENTS,BALANCE,ITEMS,PERKS,SKILLS,LOOT]=loaded;
+    [CLASSES,RACES,ENEMY_TYPES,BOSSES,INTENTS,BALANCE,ITEMS,PERKS,SKILLS,LOOT,BIOMES]=loaded;
     loadRecord();renderHub();
   }catch(error){renderMainArea(`<h2>Unable to load game data</h2><p>Serve this folder over HTTP and reload.</p><p>${escapeHtml(error.message)}</p><button class="btn" onclick="location.reload()">Retry</button>`);}
 }

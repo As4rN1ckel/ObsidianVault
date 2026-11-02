@@ -2,36 +2,132 @@
   "attack": {
     "icon": "\u2694",
     "name": "Basic Attack",
-    "detail": "An ordinary physical strike"
+    "detail": "An ordinary physical strike",
+    "effect": "attack",
+    "multiplier": 1
   },
-  "prepare": {
-    "icon": "\u26a0",
-    "name": "Prepare Strong Attack",
-    "detail": "Charges up; the next strike deals 170% damage"
-  },
-  "heavy": {
-    "icon": "\ud83d\udca5",
-    "name": "Heavy Attack",
-    "detail": "A charged strike dealing 170% damage"
-  },
-  "armor": {
+  "pounce": {
     "icon": "\u25c6",
-    "name": "Raise Armor",
-    "detail": "+3 Defense against the next 2 player attacks"
+    "name": "Lunging Bite",
+    "detail": "A fierce bite for 125% damage.",
+    "effect": "attack",
+    "multiplier": 1.25
   },
-  "poison": {
-    "icon": "\u2623",
-    "name": "Poison Strike",
-    "detail": "A weaker hit that applies poison for 3 player turns"
+  "charge": {
+    "icon": "\u25c6",
+    "name": "Lowered Tusks",
+    "detail": "Prepares a charge. The next action deals 160% damage.",
+    "effect": "prepare",
+    "followup": "trample"
   },
-  "drain": {
-    "icon": "\u2671",
-    "name": "Life Drain",
-    "detail": "Attack for 80% damage; heal from damage dealt"
+  "trample": {
+    "icon": "\u25c6",
+    "name": "Trampling Charge",
+    "detail": "A telegraphed charge dealing 160% damage.",
+    "effect": "attack",
+    "multiplier": 1.6
   },
-  "enrage": {
-    "icon": "\u2739",
-    "name": "Enrage",
-    "detail": "Below 40% HP, permanently gain 30% attack damage"
+  "gel": {
+    "icon": "\u25c6",
+    "name": "Gel Coat",
+    "detail": "Gain 2 Defense against the next 2 physical hits.",
+    "effect": "armor",
+    "armorBonus": 2,
+    "armorHits": 2
+  },
+  "gust": {
+    "icon": "\u25c6",
+    "name": "Buffeting Gust",
+    "detail": "85% damage; delays your next action by 25% of an action interval.",
+    "effect": "attack",
+    "multiplier": 0.85,
+    "delay": 0.25
+  },
+  "infectedBite": {
+    "icon": "\u25c6",
+    "name": "Infected Bite",
+    "detail": "65% damage; poison deals 2 damage for 2 of your turns.",
+    "effect": "attack",
+    "multiplier": 0.65,
+    "poisonDamage": 2,
+    "poisonTurns": 2
+  },
+  "bloodsuck": {
+    "icon": "\u25c6",
+    "name": "Bloodsuck",
+    "detail": "80% damage; heals for half the HP damage dealt.",
+    "effect": "attack",
+    "multiplier": 0.8,
+    "drain": 0.5
+  },
+  "venom": {
+    "icon": "\u25c6",
+    "name": "Venomous Bite",
+    "detail": "70% damage; poison deals 2 damage for 3 of your turns.",
+    "effect": "attack",
+    "multiplier": 0.7,
+    "poisonDamage": 2,
+    "poisonTurns": 3
+  },
+  "devour": {
+    "icon": "\u25c6",
+    "name": "Devour",
+    "detail": "115% damage; heals for 30% of the HP damage dealt.",
+    "effect": "attack",
+    "multiplier": 1.15,
+    "drain": 0.3
+  },
+  "constrict": {
+    "icon": "\u25c6",
+    "name": "Constricting Vines",
+    "detail": "Normal damage; drains 2 Mana/Stamina on an unblocked hit.",
+    "effect": "attack",
+    "multiplier": 1,
+    "resourceDrain": 2
+  },
+  "regrowth": {
+    "icon": "\u25c6",
+    "name": "Regrowth",
+    "detail": "Restores 12% Max HP instead of attacking.",
+    "effect": "heal",
+    "healPercent": 0.12
+  },
+  "savage": {
+    "icon": "\u25c6",
+    "name": "Savage Strike",
+    "detail": "An elite strike dealing 135% damage.",
+    "effect": "attack",
+    "multiplier": 1.35
+  },
+  "packHowl": {
+    "icon": "\u25c6",
+    "name": "Call of the Alpha",
+    "detail": "Once per battle: permanently increases damage by 20%.",
+    "effect": "buff",
+    "damageMultiplier": 1.2,
+    "once": true
+  },
+  "livingBark": {
+    "icon": "\u25c6",
+    "name": "Living Bark",
+    "detail": "Restores 6% Max HP and gains 2 Defense for 2 physical hits.",
+    "effect": "restoreArmor",
+    "healPercent": 0.06,
+    "armorBonus": 2,
+    "armorHits": 2
+  },
+  "wildRoots": {
+    "icon": "\u25c6",
+    "name": "Wrath of the Roots",
+    "detail": "125% damage; drains 3 Mana/Stamina on an unblocked hit.",
+    "effect": "attack",
+    "multiplier": 1.25,
+    "resourceDrain": 3
+  },
+  "awakening": {
+    "icon": "\u25c6",
+    "name": "The Forest Awakens",
+    "detail": "Phase 2: sheds armor and gains 15% damage. This action deals no damage.",
+    "effect": "transition"
   }
 }
