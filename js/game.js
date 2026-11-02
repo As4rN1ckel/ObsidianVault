@@ -44,11 +44,12 @@ function critChance(luck){return Math.min(BALANCE.critCap,BALANCE.critBase+Math.
 function xpThreshold(level){return BALANCE.xpBase+level*BALANCE.xpPerLevel;}
 
 function renderHub(){
+  gameState.characterId=null;
   cancelPendingActions();gameState.started=false;gameState.inCombat=false;gameState.combat=null;
   $container.classList.add('hub-mode');$modalOverlay.classList.remove('active');
   const previous=gameState.player;
   renderMainArea(`
-    <section class="hub" aria-label="Character creation">
+    <section class="hub" aria-label="Character creation"><button class="btn" onclick="renderMainMenu()">← Main Menu</button>
       <div class="hub-eyebrow">✦ THE GATES OF THE VAULT ✦</div>
       <h2>Create your Adventurer</h2>
       <p class="hub-intro">Choose who will descend into the Obsidian Vault. Your class grants a signature skill; your race modifies starting attributes.</p>
@@ -92,7 +93,8 @@ function startRun(){
   gameState.pendingLoot=[];gameState.lootOpen=false;gameState.panel=null;gameState.merchantStock=null;gameState.runSeed=rand(1,2_000_000_000);
   $container.classList.remove('hub-mode');$logArea.replaceChildren();
   updateLog(`${gameState.player.name}, the ${RACES[race].name} ${CLASSES[klass].name}, enters the Vault.`,'levelup');
-  enterRoom();
+  gameState.characterId=crypto.randomUUID();gameState.createdAt=new Date().toISOString();
+  enterRoom();saveCharacter(false);
 }
 function renderUI(){
   const p=gameState.player;if(!p)return;
@@ -100,7 +102,10 @@ function renderUI(){
   $('hp-bar').style.width=hpPct+'%';$('hp-text').textContent=`${p.hp} / ${p.maxHp}`;
   $('xp-bar').style.width=clamp(p.xp/needed*100,0,100)+'%';$('xp-text').textContent=`${p.xp} / ${needed}`;
   $('hud-identity').textContent=`${p.name} · Lv ${p.level} ${CLASSES[p.classId].name} · ${RACES[p.raceId].name}`;
-  $('hud-stats').innerHTML=`<span>Gold <b>${p.gold}</b></span><span>Damage <b>${p.damage}</b></span><span>Defense <b>${p.defense}</b></span><span>${label(CLASSES[p.classId].resource)} <b>${p.resource}/${p.maxResource}</b></span><span>Potions <b>${p.potions}/${BALANCE.potionSlots}</b></span>`;
+  const resource=label(CLASSES[p.classId].resource);
+  $('resource-display').innerHTML=`<div class="resource-heading"><span>${resource}</span><strong>${p.resource} / ${p.maxResource}</strong><small>+${BALANCE.resourceRegen} / turn</small></div><progress class="resource-meter" aria-label="${resource}" max="${p.maxResource}" value="${p.resource}"></progress>`;
+  $('hud-stats').innerHTML=Object.entries({Damage:p.damage,Defense:p.defense,Speed:p.speed,'Critical chance':percentText(p.critChance),'Dodge chance':percentText(p.dodgeChance),Gold:p.gold,Potions:`${p.potions}/${BALANCE.potionSlots}`,Backpack:`${p.inventory.length}/${p.backpackSlots}`}).map(([name,value])=>`<span>${name}<b>${value}</b></span>`).join('');
+  $('save-button').disabled=!canSaveCharacter();$('menu-button').disabled=!canSaveCharacter()&&!gameState.gameOver;
   $('character-button').textContent=`Character · ${p.ap} AP`;
   $('talents-button').textContent=`Talents & Skills · ${p.cp} CP`;
   $('talents-button').disabled=!canManage();
@@ -153,7 +158,7 @@ function showEntrance(){renderMainArea(`<div class="scene-icon">🚪</div><div c
 function showEmptyRoom(){updateLog('You find an empty chamber.','info');renderMainArea(`<div class="scene-icon">🕯️</div><div class="scene-title">A Quiet Chamber</div><div class="scene-desc">A moment of silence before the danger returns.</div><div class="action-buttons"><button class="btn btn-primary" onclick="advanceRoom()">Continue →</button></div>`);}
 function getCombatStatus(){
   const p=gameState.player,e=gameState.currentEnemy,parts=[];
-  if(p.blockHp>0)parts.push(`◆ Block ${p.blockHp} HP`);
+  if(p.blockHp>0)parts.push(`◆ Block: ${p.blockHp} absorption · next hit`);
   if(p.dodgeReady)parts.push('➤ Next hit dodged');
   if(p.dodgeBonus)parts.push('⚔ Next attack +50%');
   if(p.magicShieldTurns>0)parts.push(`✧ Magic Shield: ${p.magicShieldTurns} enemy turns`);
@@ -208,7 +213,6 @@ function renderCombatUI(){
   if(!gameState.inCombat||!gameState.currentEnemy)return;
   const e=gameState.currentEnemy,p=gameState.player,c=gameState.combat;
   const intent=INTENTS[e.intent]||INTENTS.attack,turnReady=c?.owner==='player'&&!gameState.turnPending&&!gameState.paused;
-  const cls=CLASSES[p.classId];
   const extra=getCombatStatus();
   renderMainArea(`
     <div class="enemy-display">
@@ -220,14 +224,14 @@ function renderCombatUI(){
       <div class="enemy-hp-bar-outer"><div class="enemy-hp-bar-inner" style="width:${clamp(e.hp/e.maxHp*100,0,100)}%"></div></div>
       <div class="intent-panel"><span class="intent-title">${intent.icon} ENEMY INTENT: ${intent.name}</span><span class="intent-desc">${intent.detail}</span></div>
     </div>
-    <div class="turn-banner ${turnReady?'turn-ready':''}">${turnReady?'✦ YOUR TURN':c?.owner==='enemy'?'◈ ENEMY TURN':'◈ PREPARING NEXT TURN'} · Action timeline: ${p.speed} speed vs ${e.speed} speed</div>
+    <div class="turn-banner ${turnReady?'turn-ready':''}">${turnReady?'✦ YOUR TURN':c?.owner==='enemy'?'◈ ENEMY TURN':'◈ PREPARING NEXT TURN'}</div>${turnOrderMarkup()}
     ${extra.length?`<div class="combat-effects">${extra.map(s=>`<span>${escapeHtml(s)}</span>`).join('')}</div>`:''}
     <div class="action-buttons combat-actions">
       <button class="btn btn-danger" onclick="playerAttack()" ${!turnReady?'disabled':''}>⚔ Basic Attack</button>
       ${skillButtons(turnReady)}
       <button class="btn" onclick="usePotion()" ${!turnReady||p.potions<=0||p.hp>=p.maxHp?'disabled':''}>✚ Potion (${p.potions})</button>
     </div>
-    <div class="combat-hint">Skills occupy ${BALANCE.skillSlots} slots. Cooldowns count your turns; damage-over-time counts enemy actions. Regain ${BALANCE.resourceRegen} ${label(cls.resource)} each turn.</div>`);
+`);
 }
 function startPlayerAction(){
   if(!combatAllowed()||gameState.turnPending||gameState.combat.owner!=='player')return false;
@@ -273,12 +277,13 @@ function enemyAttack(multiplier=1){
   if(Math.random()<p.blockChance){dmg=Math.floor(dmg*.5);updateLog('You block half the incoming damage.','heal');}
   if(p.magicShieldTurns>0)dmg=Math.max(1,Math.ceil(dmg*(1-SKILLS.wizard.reduction)));
   if(p.blockHp>0){
-    const absorbed=Math.min(dmg,p.blockHp);p.blockHp-=absorbed;dmg-=absorbed;
-    updateLog(`Block absorbs ${absorbed} damage (${p.blockHp} shield left).`,'heal');
+    const absorbed=Math.min(dmg,p.blockHp);p.blockHp=0;dmg-=absorbed;
+    updateLog(`Block absorbs ${absorbed} damage (Block consumed).`,'heal');
     // Counter attacks use the same flat Defense calculation and do not crit.
     const counter=p.counterReady?calculateDamage(Math.round(p.damage*.7),e.defense+e.armorBonus*(e.armorHits>0)):0;
     if(p.counterReady&&e.armorHits>0){e.armorHits--;if(e.armorHits===0)e.armorBonus=0;}
     e.hp=Math.max(0,e.hp-counter);if(p.counterReady)updateLog(`Block counterattacks ${e.name} for ${counter} damage!`,'combat');
+    p.counterReady=false;
   }
   p.hp=Math.max(0,p.hp-dmg);
   updateLog(`${e.name} hits you for ${dmg} damage${p.magicShieldTurns>0?' (Magic Shield)':''}.`,'combat');
@@ -356,6 +361,7 @@ function gameOver(){
     (gameState.floor===gameState.highScoreFloor&&gameState.room>gameState.highScoreRoom)||
     (gameState.floor===gameState.highScoreFloor&&gameState.room===gameState.highScoreRoom&&p.level>gameState.highScoreLevel);
   if(isNewHigh){gameState.highScoreFloor=gameState.floor;gameState.highScoreRoom=gameState.room;gameState.highScoreLevel=p.level;saveRecord();}
+  persistCharacter('memorial');
   updateLog('You have fallen in the Obsidian Vault.','boss');renderUI();
   renderMainArea(`<div id="game-over-screen" class="active"><div class="go-icon">☠</div><div class="go-title">Game Over</div><div class="go-subtitle">The Vault claims another adventurer...</div>
     <div class="go-stats"><div class="go-section-title">Journey</div>
@@ -366,16 +372,16 @@ function gameOver(){
     <div class="go-stat-row"><span class="go-stat-label">Level</span><span class="go-stat-value">${p.level}</span></div>
     <div class="go-stat-row"><span class="go-stat-label">Gold Earned</span><span class="go-stat-value">${p.totalGoldEarned}</span></div></div>
     ${isNewHigh?'<div class="high-score-msg">🏆 New High Score!</div>':''}
-    <button class="btn btn-primary" onclick="renderHub()">Return to Character Hub</button>
+    <button class="btn btn-primary" onclick="renderMainMenu()">Main Menu</button>
     </div>`);
 }
-function restartGame(){renderHub();}
+function restartGame(){renderMainMenu();}
 async function init(){
   try{
     const names=['classes','races','enemies','bosses','intents','balance','items','perks','skills','loot','biomes'];
     const loaded=await Promise.all(names.map(async name=>{const r=await fetch(`data/${name}.json`);if(!r.ok)throw new Error(`${name}: HTTP ${r.status}`);return r.json();}));
     [CLASSES,RACES,ENEMY_TYPES,BOSSES,INTENTS,BALANCE,ITEMS,PERKS,SKILLS,LOOT,BIOMES]=loaded;
-    loadRecord();renderHub();
+    loadRecord();renderMainMenu();
   }catch(error){renderMainArea(`<h2>Unable to load game data</h2><p>Serve this folder over HTTP and reload.</p><p>${escapeHtml(error.message)}</p><button class="btn" onclick="location.reload()">Retry</button>`);}
 }
 

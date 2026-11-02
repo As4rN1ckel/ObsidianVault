@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright
 with sync_playwright() as pw:
  b=pw.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox'])
  page=b.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
- page.goto(sys.argv[1] if len(sys.argv)>1 else 'http://127.0.0.1:8000');page.locator('#begin-run').click()
+ page.goto(sys.argv[1] if len(sys.argv)>1 else 'http://127.0.0.1:8000');page.locator('#new-character').click();page.locator('#begin-run').click()
  page.evaluate('''() => {
  const assert=(v,m)=>{if(!v)throw Error(m)};
  assert(BALANCE.maxFloor===10&&BALANCE.damagePerAttribute===.4,'balance');

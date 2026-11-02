@@ -24,12 +24,21 @@ Open the server in a browser. HTTP serving is required because game definitions 
 - Merchants have 2–5 potions and limited equipment. Sell spare gear and materials at 35% value. Materials currently have no crafting use.
 - Each floor has one entrance, one guardian, one fountain and one merchant (rooms 3–9), one or two treasure rooms (rooms 2–9), one empty room, and enemies in remaining rooms. Rooms 10 on floors 1–4 and 6–9 contain elites; floors 5 and 10 end in a boss and Warden respectively. Defeat the floor-10 Warden to win.
 
-Only the personal best is saved in browser local storage; active runs are not saved.
+## Main menu and character saves
+
+The main menu offers **New Character**, **Continue with Last Character**, **Load Character**, and **Memorial**. Each new adventurer receives a separate save; there is no game-imposed character limit. Saves live in this browser's local storage and are subject to its capacity. Clearing browser data removes them.
+
+Use **Save Character** outside combat or during your player turn. **Main Menu** also saves before leaving a living run. Loading restores the exact character, floor layout, unresolved loot, merchant stock, enemy, effects, and combat timeline. New characters are saved on creation; later progress requires a manual save or returning through Main Menu. Death replaces that character's playable save with a permanent Memorial entry. Victories are retained as completed character records.
+
+Block absorbs damage from the **next landed hit only**, then expires and counterattacks once. Dodged attacks do not consume Block. The Fighter mastery starting shield follows the same one-hit rule without a counterattack.
+
+The HUD displays Speed, critical/dodge chances, and inventory capacity. Mana/Stamina has a dedicated meter with a regeneration badge. Combat previews the current/next turn and the following turns, five entries total, using the actual speed scheduler.
 
 ## Files
 
 - `index.html`: page structure.
 - `css/styles.css`: visual theme and responsive panels.
+- `js/saves.js`: character saves, main menu, character library, memorials, and turn preview.
 - `js/game.js`: loading, character creation, exploration, combat and levelling.
 - `js/enemies.js`: biome encounter selection, guardian scaling, enemy intent execution, and Warden phase changes.
 - `js/skills.js`: talent/loadout presentation, independent skill cooldowns, skill effects and enemy DoT processing.
@@ -42,6 +51,7 @@ With the server running, Python Playwright and system Chromium installed:
 
 ```sh
 python3 tests/smoke.py
+python3 tests/saves.py
 ```
 
 The smoke test checks new starting stats, combat management locks, material stacks and sales, full-backpack loot recovery, Arcane Bolt, manual battle downtime, enemy loot pools, 2,000 floor layouts and mobile width. Balance values remain initial tuning; a full-run balance playtest is still needed.

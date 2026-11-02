@@ -4,7 +4,7 @@
     "icon": "\u265c",
     "description": "Durable frontline combatant",
     "skill": "Block",
-    "skillInfo": "Absorb 150% of Defense + Might damage; counterattack for 70% of Damage when struck.",
+    "skillInfo": "Absorb up to 150% Defense + Might from the next landed hit; counterattack once for 70% Damage.",
     "attributes": {
       "might": 6,
       "agility": 3,

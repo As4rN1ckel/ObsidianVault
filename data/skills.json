@@ -6,7 +6,7 @@
     "shieldMightScale": 1,
     "classId": "fighter",
     "name": "Block",
-    "description": "Absorb damage using Defense + Might and counterattack.",
+    "description": "Absorb up to 150% Defense + Might from the next landed hit, then counterattack once for 70% Damage.",
     "starting": true
   },
   "wizard": {

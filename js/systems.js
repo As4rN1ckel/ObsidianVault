@@ -129,8 +129,9 @@ function sellItem(uid){const p=gameState.player;if(!canTrade())return;const i=p.
 function sellPotion(){const p=gameState.player;if(!canTrade()||p.potions<1)return;p.potions--;p.gold+=sellPrice(ITEMS.potion);renderUI();showMerchant();}
 function winGame(){
  cancelPendingActions();gameState.gameOver=true;gameState.inCombat=false;
+ persistCharacter('completed');
  if(gameState.highScoreFloor<=BALANCE.maxFloor){gameState.highScoreFloor=BALANCE.maxFloor;gameState.highScoreRoom=BALANCE.roomsPerFloor;gameState.highScoreLevel=Math.max(gameState.highScoreLevel,gameState.player.level);saveRecord();}
- renderUI();renderMainArea(`<div class="scene-icon">♛</div><div class="scene-title">The Warden has fallen</div><div class="scene-desc">All ${BALANCE.maxFloor} floors cleared through Whisperwind Plains and Thornveil Forest. ${escapeHtml(gameState.player.name)} returns from the depths.</div><button class="btn btn-primary" onclick="renderHub()">Return to Character Hub</button>`);
+ renderUI();renderMainArea(`<div class="scene-icon">♛</div><div class="scene-title">The Warden has fallen</div><div class="scene-desc">All ${BALANCE.maxFloor} floors cleared through Whisperwind Plains and Thornveil Forest. ${escapeHtml(gameState.player.name)} returns from the depths.</div><button class="btn btn-primary" onclick="renderMainMenu()">Main Menu</button>`);
 }
 
 function stowPotion(){if(gameState.inCombat)return;const p=gameState.player;if(gameState.panel!=='inventory'||p.potions<1||p.inventory.length>=p.backpackSlots)return;p.potions--;p.inventory.push(createItem('potion'));renderUI();renderPanel();}

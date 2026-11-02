@@ -81,7 +81,7 @@
       "id": "mastery",
       "name": "Iron Resolve",
       "column": "mastery",
-      "description": "Start each battle with a Might-sized Block shield (without a counterattack until Block is used).",
+      "description": "Start each battle with a Might-sized shield for the next landed hit, without a counterattack.",
       "requires": [
         "recovery",
         "enhancement"

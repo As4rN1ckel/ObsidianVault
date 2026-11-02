@@ -6,6 +6,7 @@ with sync_playwright() as pw:
  page=b.new_page();errors=[]
  page.on('pageerror',lambda e:errors.append(str(e)))
  page.goto(sys.argv[1] if len(sys.argv)>1 else 'http://127.0.0.1:8000')
+ page.locator('#new-character').click()
  page.get_by_role('heading',name='Create your Adventurer').wait_for()
  page.locator('input[value="wizard"]').check(force=True)
  page.locator('#begin-run').click()

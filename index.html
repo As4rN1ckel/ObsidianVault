@@ -21,8 +21,10 @@
       <span class="hud-label">✦ EXPERIENCE</span>
       <div class="xp-bar-container"><div class="xp-bar-outer"><div id="xp-bar" class="xp-bar-inner" style="width:0%"></div></div><span id="xp-text" class="xp-text">0 / 65</span></div>
     </div>
+    <div id="resource-display"></div>
     <div id="hud-stats" class="stat-grid"></div>
     <nav class="panel-nav" aria-label="Character management"><button id="character-button" class="btn" onclick="openPanel('character')">Character</button><button id="talents-button" class="btn" onclick="openPanel('talents')">Talents &amp; Skills</button><button id="inventory-button" class="btn" onclick="openPanel('inventory')">Inventory & Equipment</button></nav>
+    <nav class="panel-nav run-controls"><button id="save-button" class="btn" onclick="saveCharacter()">Save Character</button><button id="menu-button" class="btn" onclick="returnToMenu()">Main Menu</button></nav><p id="save-status" role="status"></p>
   </div>
 
   <!-- Floor/Room Indicator -->
@@ -43,6 +45,7 @@
 <script src="js/systems.js" defer></script>
 <script src="js/skills.js" defer></script>
 <script src="js/enemies.js" defer></script>
+<script src="js/saves.js" defer></script>
 <script src="js/game.js" defer></script>
 </body>
 </html>
