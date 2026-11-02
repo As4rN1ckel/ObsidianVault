@@ -103,7 +103,7 @@ function renderUI(){
   $('xp-bar').style.width=clamp(p.xp/needed*100,0,100)+'%';$('xp-text').textContent=`${p.xp} / ${needed}`;
   $('hud-identity').textContent=`${p.name} · Lv ${p.level} ${CLASSES[p.classId].name} · ${RACES[p.raceId].name}`;
   const resource=label(CLASSES[p.classId].resource);
-  $('resource-display').innerHTML=`<div class="resource-heading"><span>${resource}</span><strong>${p.resource} / ${p.maxResource}</strong><small>+${BALANCE.resourceRegen} / turn</small></div><progress class="resource-meter" aria-label="${resource}" max="${p.maxResource}" value="${p.resource}"></progress>`;
+  $('resource-display').innerHTML=`<span class="hud-label">${resource==='Mana'?'✧':'◆'} ${resource.toUpperCase()}<small class="resource-regen">+${BALANCE.resourceRegen} / turn</small></span><div class="hp-bar-container"><div class="hp-bar-outer resource-bar-outer ${CLASSES[p.classId].resource}" role="progressbar" aria-label="${resource}" aria-valuemin="0" aria-valuemax="${p.maxResource}" aria-valuenow="${p.resource}"><div class="hp-bar-inner resource-bar-inner" style="width:${clamp(p.resource/p.maxResource*100,0,100)}%"></div></div><span class="hp-text">${p.resource} / ${p.maxResource}</span></div>`;
   $('hud-stats').innerHTML=Object.entries({Damage:p.damage,Defense:p.defense,Speed:p.speed,'Critical chance':percentText(p.critChance),'Dodge chance':percentText(p.dodgeChance),Gold:p.gold,Potions:`${p.potions}/${BALANCE.potionSlots}`,Backpack:`${p.inventory.length}/${p.backpackSlots}`}).map(([name,value])=>`<span>${name}<b>${value}</b></span>`).join('');
   $('save-button').disabled=!canSaveCharacter();$('menu-button').disabled=!canSaveCharacter()&&!gameState.gameOver;
   $('character-button').textContent=`Character · ${p.ap} AP`;

@@ -11,6 +11,11 @@ with sync_playwright() as pw:
   page.locator('#new-character').click();page.locator('#hero-name').fill(name);page.locator('#begin-run').click()
  new('First <hero>')
  first=page.evaluate('gameState.characterId')
+ assert page.locator('.session-controls #save-button').is_visible()
+ assert page.locator('#hud #save-button').count()==0
+ assert page.evaluate("document.querySelector('#log-area').compareDocumentPosition(document.querySelector('.session-controls')) & Node.DOCUMENT_POSITION_FOLLOWING")
+ assert page.locator('#hud .hud-row').nth(1).get_by_role('progressbar',name='Stamina').count()==1
+ assert page.locator('.experience-track #xp-bar').count()==1
  page.evaluate('''() => {
  gameState.player.gold=123;gameState.floorLayout=['merchant'];gameState.room=1;
  showMerchant();gameState.merchantStock.potions=1;saveCharacter();returnToMenu();
@@ -21,6 +26,12 @@ with sync_playwright() as pw:
  assert page.evaluate('gameState.player.name')=='Second hero'
  page.evaluate('returnToMenu()');page.get_by_role('button',name='Load Character',exact=True).click()
  assert page.locator('.character-card').count()==2
+ second_card=page.locator('.character-card').filter(has_text='Second hero')
+ second_card.get_by_role('button',name='Dismiss Character').click()
+ assert second_card.get_by_role('button',name='Delete Character').is_visible()
+ second_card.get_by_role('button',name='Cancel',exact=True).click()
+ assert page.locator('.character-card').count()==2
+ assert page.evaluate('characterRecords().length')==2
  page.locator('.character-card').filter(has_text='First <hero>').get_by_role('button',name='Load Character').click()
  assert page.evaluate('gameState.player.gold===123&&gameState.merchantStock.potions===1')
  # Loot survives without generating another treasure reward.
@@ -62,9 +73,18 @@ with sync_playwright() as pw:
  page.evaluate(f'loadCharacter("{first}")')
  assert page.locator('.character-card').count()==1
  assert not page.evaluate('gameState.started')
+ # Confirmed deletion affects only the chosen character and survives reload.
+ page.locator('.character-card').get_by_role('button',name='Dismiss Character').click()
+ page.get_by_role('button',name='Delete Character',exact=True).click()
+ assert page.locator('.character-card').count()==0
+ assert page.evaluate('characterRecords().length')==1
+ page.reload()
+ assert page.get_by_role('button',name='Continue with Last Character').is_disabled()
+ page.get_by_role('button',name='Memorial',exact=True).click()
+ assert page.locator('.character-card').filter(has_text='First <hero>').count()==1
  # Speed preview follows the same scheduling rule, including player-first ties.
  page.evaluate('''() => {
- gameState.player.speed=200;gameState.currentEnemy={speed:100};
+ gameState.player={speed:200};gameState.currentEnemy={speed:100};
  gameState.combat={owner:null,playerNext:1,enemyNext:1};
  if(nextTurnOrder().join()!=='player,enemy,player,player,enemy')throw Error('speed order');
  }''')

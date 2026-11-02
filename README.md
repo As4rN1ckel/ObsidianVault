@@ -26,13 +26,13 @@ Open the server in a browser. HTTP serving is required because game definitions 
 
 ## Main menu and character saves
 
-The main menu offers **New Character**, **Continue with Last Character**, **Load Character**, and **Memorial**. Each new adventurer receives a separate save; there is no game-imposed character limit. Saves live in this browser's local storage and are subject to its capacity. Clearing browser data removes them.
+The main menu offers **New Character**, **Continue with Last Character**, **Load Character**, and **Memorial**. Each new adventurer receives a separate save; there is no game-imposed character limit. Saves live in this browser's local storage and are subject to its capacity. Clearing browser data removes them. Use **Dismiss Character** in Load Character to delete an active or completed character; an inline confirmation lets you cancel before removal. Memorial entries are preserved.
 
-Use **Save Character** outside combat or during your player turn. **Main Menu** also saves before leaving a living run. Loading restores the exact character, floor layout, unresolved loot, merchant stock, enemy, effects, and combat timeline. New characters are saved on creation; later progress requires a manual save or returning through Main Menu. Death replaces that character's playable save with a permanent Memorial entry. Victories are retained as completed character records.
+Session controls sit below the Adventure Journal. Use **Save Character** outside combat or during your player turn. **Main Menu** also saves before leaving a living run. Loading restores the exact character, floor layout, unresolved loot, merchant stock, enemy, effects, and combat timeline. New characters are saved on creation; later progress requires a manual save or returning through Main Menu. Death replaces that character's playable save with a permanent Memorial entry. Victories are retained as completed character records.
 
 Block absorbs damage from the **next landed hit only**, then expires and counterattacks once. Dodged attacks do not consume Block. The Fighter mastery starting shield follows the same one-hit rule without a counterattack.
 
-The HUD displays Speed, critical/dodge chances, and inventory capacity. Mana/Stamina has a dedicated meter with a regeneration badge. Combat previews the current/next turn and the following turns, five entries total, using the actual speed scheduler.
+The HUD displays Speed, critical/dodge chances, and inventory capacity. Mana/Stamina sits directly below Health in a matching bar with a regeneration badge; XP uses a slim gold progress track below it. Combat previews the current/next turn and the following turns, five entries total, using the actual speed scheduler.
 
 ## Files
 

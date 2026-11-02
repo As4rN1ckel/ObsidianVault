@@ -596,7 +596,15 @@ body {
 .main-menu{text-align:center}.main-menu h2,.character-library h2{margin:18px 0;color:#ead8ba;font-family:Georgia,serif}
 .menu-actions{display:grid;gap:12px;margin:28px auto;max-width:360px}.menu-actions .btn{width:100%;max-width:none;display:flex;flex-direction:column;gap:5px;padding:16px}.menu-actions small{font-weight:400;color:#b2adb0}
 .character-card{border:1px solid #625747;border-radius:10px;background:#1b2029;padding:18px;margin:15px 0;overflow-wrap:anywhere}.character-card p{margin:9px 0;font-size:13px}.character-card small{display:block;color:#b2adb0;margin-bottom:12px}.character-card h3{color:#ead8ba}
-.resource-heading{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12px}.resource-heading small{margin-left:auto;color:#c5b48e}.resource-meter{width:100%;height:9px;accent-color:#bc8cff}
 #hud-stats{grid-template-columns:repeat(4,minmax(0,1fr))}#hud-stats>span{padding:8px;font-size:10px}#hud-stats b{font-size:16px}.run-controls{margin-top:9px}#save-status{font-size:12px;color:#d9c39e;margin-top:8px;min-height:16px}
 .turn-preview{margin:12px 0;font-size:11px;color:#b2adb0}.turn-preview>span{display:block;margin-bottom:6px}.turn-preview ol{list-style:none;display:flex;gap:5px;padding:0}.turn-preview li{flex:1;padding:8px 3px;border-radius:5px;border:1px solid #625747;white-space:nowrap;text-align:center}.turn-preview .player{background:#223b35;color:#b6e7cb}.turn-preview .enemy{background:#412b31;color:#f0b8bd}.turn-preview [aria-current]{outline:1px solid #dfc292}
 @media(max-width:480px){#hud-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.turn-preview li{font-size:10px}}
+
+/* Session actions sit below the journal, apart from character and combat actions. */
+.session-controls{padding:16px 19px;background:#151922;border-top:1px solid #34313a}
+.session-controls .run-controls{margin-top:0}.hub-mode .session-controls{display:none}
+.resource-regen{display:block;margin-top:4px;color:#b7a991;font-size:9px;letter-spacing:0;font-weight:400}
+.resource-bar-outer.mana{background:#272035;border-color:#514363}.resource-bar-outer.mana .resource-bar-inner{background:linear-gradient(90deg,#64488e,#b592d3)}
+.resource-bar-outer.stamina{background:#20322c;border-color:#3d594c}.resource-bar-outer.stamina .resource-bar-inner{background:linear-gradient(90deg,#397460,#87bd94)}
+.experience-track{margin:15px 0 18px}.experience-caption{display:flex;justify-content:space-between;margin-bottom:6px;font-size:10px;color:#a99d87}.experience-track .xp-bar-outer{height:4px;border:0;border-radius:2px;background:#363340}.experience-track .xp-bar-inner{background:linear-gradient(90deg,#8b744f,#d3b375)}
+.dismiss-actions{margin-top:14px;padding-top:12px;border-top:1px solid #44414a;display:flex;gap:8px;flex-wrap:wrap}.dismiss-actions p{flex-basis:100%;color:#e6b6ad}.dismiss-actions .btn{width:auto;max-width:none;font-size:12px}

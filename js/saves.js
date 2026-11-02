@@ -42,11 +42,23 @@ function renderMainMenu(){
 function continueLastCharacter(){
   try{const record=characterRecords().find(r=>r.status==='active');if(record)loadCharacter(record.id);}catch(_){renderCharacterLibrary(false,'Unable to read browser saves.');}
 }
-function renderCharacterLibrary(memorial=false,message=''){
+function renderCharacterLibrary(memorial=false,message='',dismissId=null){
   prepareMenu();let records=[];
   try{records=characterRecords().filter(r=>memorial?r.status==='memorial':r.status!=='memorial');}catch(_){message='Unable to read browser saves.';}
-  renderMainArea(`<section class="character-library"><button class="btn" onclick="renderMainMenu()">← Main Menu</button><h2>${memorial?'Memorial':'Load Character'}</h2><p role="status">${escapeHtml(message)}</p>${records.map(r=>`<article class="character-card"><h3>${escapeHtml(r.hero.name)}</h3><p>Level ${r.hero.level} · ${escapeHtml(CLASSES[r.hero.classId]?.name||r.hero.classId)} · ${escapeHtml(RACES[r.hero.raceId]?.name||r.hero.raceId)}</p><p>Floor ${r.hero.floor} · Room ${r.hero.room} · ${r.hero.roomsCleared} rooms cleared</p><small>${r.status==='memorial'?'Fallen':r.status==='completed'?'Vault conquered':'Saved'} · ${escapeHtml(new Date(r.updatedAt).toLocaleString())}</small>${r.status==='active'?`<button class="btn btn-primary" data-character-id="${escapeHtml(r.id)}">Load Character</button>`:`<p>${r.hero.goldEarned} gold earned</p>`}</article>`).join('')||`<p class="help-text">${memorial?'No fallen adventurers.':'No saved characters yet.'}</p>`}</section>`);
+  renderMainArea(`<section class="character-library"><button class="btn" onclick="renderMainMenu()">← Main Menu</button><h2>${memorial?'Memorial':'Load Character'}</h2><p role="status">${escapeHtml(message)}</p>${records.map(r=>`<article class="character-card"><h3>${escapeHtml(r.hero.name)}</h3><p>Level ${r.hero.level} · ${escapeHtml(CLASSES[r.hero.classId]?.name||r.hero.classId)} · ${escapeHtml(RACES[r.hero.raceId]?.name||r.hero.raceId)}</p><p>Floor ${r.hero.floor} · Room ${r.hero.room} · ${r.hero.roomsCleared} rooms cleared</p><small>${r.status==='memorial'?'Fallen':r.status==='completed'?'Vault conquered':'Saved'} · ${escapeHtml(new Date(r.updatedAt).toLocaleString())}</small>${r.status==='active'?`<button class="btn btn-primary" data-character-id="${escapeHtml(r.id)}">Load Character</button>`:`<p>${r.hero.goldEarned} gold earned</p>`}${!memorial?`<div class="dismiss-actions">${dismissId===r.id?`<p>Delete ${escapeHtml(r.hero.name)} and their saved progress? This cannot be undone.</p><button class="btn btn-danger" data-confirm-dismiss="${escapeHtml(r.id)}">Delete Character</button><button class="btn" data-cancel-dismiss>Cancel</button>`:`<button class="btn" data-dismiss-character="${escapeHtml(r.id)}">Dismiss Character</button>`}</div>`:''}</article>`).join('')||`<p class="help-text">${memorial?'No fallen adventurers.':'No saved characters yet.'}</p>`}</section>`);
   $mainArea.querySelectorAll('[data-character-id]').forEach(button=>button.addEventListener('click',()=>loadCharacter(button.dataset.characterId)));
+  $mainArea.querySelectorAll('[data-dismiss-character]').forEach(button=>button.addEventListener('click',()=>{renderCharacterLibrary(false,'',button.dataset.dismissCharacter);$mainArea.querySelector('[data-cancel-dismiss]').focus();}));
+  $mainArea.querySelectorAll('[data-cancel-dismiss]').forEach(button=>button.addEventListener('click',()=>{renderCharacterLibrary();$mainArea.querySelector('[data-dismiss-character]')?.focus();}));
+  $mainArea.querySelectorAll('[data-confirm-dismiss]').forEach(button=>button.addEventListener('click',()=>dismissCharacter(button.dataset.confirmDismiss)));
+
+}
+function dismissCharacter(id){
+  try{
+    const record=JSON.parse(localStorage.getItem(CHARACTER_PREFIX+id));
+    if(!record||!['active','completed'].includes(record.status)){renderCharacterLibrary(false,'This character is unavailable.');return;}
+    localStorage.removeItem(CHARACTER_PREFIX+id);
+    renderCharacterLibrary(false,`${record.hero.name} dismissed.`);
+  }catch(_){renderCharacterLibrary(false,'Unable to delete this character. Browser storage is unavailable.');}
 }
 function loadCharacter(id){
   let record;
