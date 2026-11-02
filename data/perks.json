@@ -2,7 +2,8 @@
   "fighter": [
     {
       "id": "training",
-      "name": "Martial Training",
+      "name": "Core Training",
+      "column": "stats",
       "description": "+1 Might",
       "flat": {
         "might": 1
@@ -12,6 +13,7 @@
     {
       "id": "fortitude",
       "name": "Fortitude",
+      "column": "stats",
       "description": "+5% Max HP",
       "percent": {
         "maxHp": 0.05
@@ -23,76 +25,74 @@
     {
       "id": "precision",
       "name": "Precision",
-      "description": "+2% critical chance",
+      "column": "stats",
+      "description": "+2 percentage points critical chance",
       "flat": {
         "critChance": 0.02
       },
       "requires": [
-        "training"
+        "fortitude"
       ]
     },
     {
-      "id": "mastery",
-      "name": "Veteran",
-      "description": "+5% Damage; requires both branches",
-      "percent": {
-        "damage": 0.05
-      },
-      "requires": [
-        "fortitude",
-        "precision"
-      ]
-    }
-  ],
-  "wizard": [
-    {
-      "id": "training",
-      "name": "Arcane Study",
-      "description": "+1 Intellect",
-      "flat": {
-        "intellect": 1
-      },
+      "id": "unlock1",
+      "name": "Shield Bash",
+      "column": "combat",
+      "description": "Unlock Shield Bash",
+      "skill": "shieldBash",
       "requires": []
     },
     {
-      "id": "fortitude",
-      "name": "Fortitude",
-      "description": "+5% Max HP",
-      "percent": {
-        "maxHp": 0.05
-      },
+      "id": "unlock2",
+      "name": "Heavy Strike",
+      "column": "combat",
+      "description": "Unlock Heavy Strike",
+      "skill": "heavyStrike",
       "requires": [
-        "training"
+        "unlock1"
       ]
     },
     {
-      "id": "precision",
-      "name": "Precision",
-      "description": "+2% critical chance",
-      "flat": {
-        "critChance": 0.02
-      },
+      "id": "enhancement",
+      "name": "Refined Technique",
+      "column": "combat",
+      "description": "Shield Bash deals 25% more damage.",
       "requires": [
-        "training"
+        "unlock2"
+      ]
+    },
+    {
+      "id": "utility",
+      "name": "Catch Your Breath",
+      "column": "mastery",
+      "description": "Recover 2 Mana/Stamina after each battle.",
+      "requires": []
+    },
+    {
+      "id": "recovery",
+      "name": "Second Wind",
+      "column": "mastery",
+      "description": "Recover 5% Max HP after each battle.",
+      "requires": [
+        "utility"
       ]
     },
     {
       "id": "mastery",
-      "name": "Spellweaver",
-      "description": "+5% Damage; requires both branches",
-      "percent": {
-        "damage": 0.05
-      },
+      "name": "Iron Resolve",
+      "column": "mastery",
+      "description": "Start each battle with a Might-sized Block shield (without a counterattack until Block is used).",
       "requires": [
-        "fortitude",
-        "precision"
+        "recovery",
+        "enhancement"
       ]
     }
   ],
   "rogue": [
     {
       "id": "training",
-      "name": "Quick Hands",
+      "name": "Core Training",
+      "column": "stats",
       "description": "+1 Agility",
       "flat": {
         "agility": 1
@@ -102,6 +102,7 @@
     {
       "id": "fortitude",
       "name": "Fortitude",
+      "column": "stats",
       "description": "+5% Max HP",
       "percent": {
         "maxHp": 0.05
@@ -113,24 +114,155 @@
     {
       "id": "precision",
       "name": "Precision",
-      "description": "+2% critical chance",
+      "column": "stats",
+      "description": "+2 percentage points critical chance",
       "flat": {
         "critChance": 0.02
+      },
+      "requires": [
+        "fortitude"
+      ]
+    },
+    {
+      "id": "unlock1",
+      "name": "Poisoned Blade",
+      "column": "combat",
+      "description": "Unlock Poisoned Blade",
+      "skill": "poisonedBlade",
+      "requires": []
+    },
+    {
+      "id": "unlock2",
+      "name": "Backstab",
+      "column": "combat",
+      "description": "Unlock Backstab",
+      "skill": "backstab",
+      "requires": [
+        "unlock1"
+      ]
+    },
+    {
+      "id": "enhancement",
+      "name": "Refined Technique",
+      "column": "combat",
+      "description": "Poisoned Blade deals +1 poison damage per tick.",
+      "requires": [
+        "unlock2"
+      ]
+    },
+    {
+      "id": "utility",
+      "name": "Catch Your Breath",
+      "column": "mastery",
+      "description": "Recover 2 Mana/Stamina after each battle.",
+      "requires": []
+    },
+    {
+      "id": "recovery",
+      "name": "Second Wind",
+      "column": "mastery",
+      "description": "Recover 5% Max HP after each battle.",
+      "requires": [
+        "utility"
+      ]
+    },
+    {
+      "id": "mastery",
+      "name": "Venom Siphon",
+      "column": "mastery",
+      "description": "Poisoned Blade restores 1 Stamina per poison tick.",
+      "requires": [
+        "recovery",
+        "enhancement"
+      ]
+    }
+  ],
+  "wizard": [
+    {
+      "id": "training",
+      "name": "Core Training",
+      "column": "stats",
+      "description": "+1 Intellect",
+      "flat": {
+        "intellect": 1
+      },
+      "requires": []
+    },
+    {
+      "id": "fortitude",
+      "name": "Fortitude",
+      "column": "stats",
+      "description": "+5% Max HP",
+      "percent": {
+        "maxHp": 0.05
       },
       "requires": [
         "training"
       ]
     },
     {
-      "id": "mastery",
-      "name": "Shadow Adept",
-      "description": "+5% Damage; requires both branches",
-      "percent": {
-        "damage": 0.05
+      "id": "precision",
+      "name": "Precision",
+      "column": "stats",
+      "description": "+2 percentage points critical chance",
+      "flat": {
+        "critChance": 0.02
       },
       "requires": [
-        "fortitude",
-        "precision"
+        "fortitude"
+      ]
+    },
+    {
+      "id": "unlock1",
+      "name": "Mana Surge",
+      "column": "combat",
+      "description": "Unlock Mana Surge",
+      "skill": "manaSurge",
+      "requires": []
+    },
+    {
+      "id": "unlock2",
+      "name": "Mana Burn",
+      "column": "combat",
+      "description": "Unlock Mana Burn",
+      "skill": "manaBurn",
+      "requires": [
+        "unlock1"
+      ]
+    },
+    {
+      "id": "enhancement",
+      "name": "Refined Technique",
+      "column": "combat",
+      "description": "Arcane Bolt deals 15% more damage.",
+      "requires": [
+        "unlock2"
+      ]
+    },
+    {
+      "id": "utility",
+      "name": "Catch Your Breath",
+      "column": "mastery",
+      "description": "Recover 2 Mana/Stamina after each battle.",
+      "requires": []
+    },
+    {
+      "id": "recovery",
+      "name": "Second Wind",
+      "column": "mastery",
+      "description": "Recover 5% Max HP after each battle.",
+      "requires": [
+        "utility"
+      ]
+    },
+    {
+      "id": "mastery",
+      "name": "Arcane Flow",
+      "column": "mastery",
+      "description": "Arcane Bolt restores 2 Mana on hit.",
+      "requires": [
+        "recovery",
+        "enhancement"
       ]
     }
   ]

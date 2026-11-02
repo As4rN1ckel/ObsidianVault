@@ -35,7 +35,7 @@ function makePlayer(name,classKey,raceKey){
     attributes:buildStats(classKey,raceKey),ap:0,cp:0,perks:[],inventory:[],
     equipment:{weapon:createItem(CLASSES[classKey].weapon,0),offhand:null,armor:null,backpack:null,accessory:null},
     hp:Infinity,resource:Infinity,potions:0,gold:0,xp:0,level:1,totalGoldEarned:0,
-    cooldownReadyAt:0,boltReadyAt:0,blockHp:0,dodgeReady:false,dodgeBonus:false,magicShieldTurns:0,poisonTurns:0,poisonDamage:0};
+    skillCooldowns:{},equippedSkills:Object.keys(SKILLS).filter(id=>SKILLS[id].classId===classKey&&SKILLS[id].starting),blockHp:0,dodgeReady:false,dodgeBonus:false,magicShieldTurns:0,poisonTurns:0,poisonDamage:0};
   recalculate(p);return p;
 }
 
@@ -101,7 +101,9 @@ function renderUI(){
   $('xp-bar').style.width=clamp(p.xp/needed*100,0,100)+'%';$('xp-text').textContent=`${p.xp} / ${needed}`;
   $('hud-identity').textContent=`${p.name} · Lv ${p.level} ${CLASSES[p.classId].name} · ${RACES[p.raceId].name}`;
   $('hud-stats').innerHTML=`<span>Gold <b>${p.gold}</b></span><span>Damage <b>${p.damage}</b></span><span>Defense <b>${p.defense}</b></span><span>${label(CLASSES[p.classId].resource)} <b>${p.resource}/${p.maxResource}</b></span><span>Potions <b>${p.potions}/${BALANCE.potionSlots}</b></span>`;
-  $('character-button').textContent=`Character · ${p.ap} AP / ${p.cp} CP`;
+  $('character-button').textContent=`Character · ${p.ap} AP`;
+  $('talents-button').textContent=`Talents & Skills · ${p.cp} CP`;
+  $('talents-button').disabled=!canManage();
   $('character-button').disabled=$('inventory-button').disabled=!canManage();
   $('floor-room-text').textContent=`Floor ${gameState.floor}/${BALANCE.maxFloor} • Room ${gameState.room}/${BALANCE.roomsPerFloor}`;
   renderRoomDots();
@@ -184,13 +186,17 @@ function getCombatStatus(){
   if(p.magicShieldTurns>0)parts.push(`✧ Magic Shield: ${p.magicShieldTurns} enemy turns`);
   if(p.poisonTurns>0)parts.push(`☣ Poison: ${p.poisonDamage} × ${p.poisonTurns}`);
   if(e.armorHits>0)parts.push(`Enemy armor: +${e.armorBonus} for ${e.armorHits} hits`);
+  if(e.stunTurns)parts.push(`Stunned: ${e.stunTurns} enemy action`);
+  for(const [id,dot] of Object.entries(e.dots||{}))parts.push(`${label(id)}: ${dot.damage} × ${dot.turns}`);
   if(e.enraged)parts.push('Enemy enraged: +30% Damage');
   return parts;
 }
 function startCombat(enemy,boss=false){
   gameState.currentEnemy=enemy;gameState.inCombat=true;gameState.turnPending=true;
-  const p=gameState.player;p.cooldownReadyAt=0;p.boltReadyAt=0;p.blockHp=0;p.dodgeReady=false;p.dodgeBonus=false;p.magicShieldTurns=0;
+  const p=gameState.player;p.skillCooldowns={};p.blockHp=0;p.dodgeReady=false;p.dodgeBonus=false;p.magicShieldTurns=0;
   p.poisonTurns=0;p.poisonDamage=0;
+  if(p.classId==='fighter'&&p.perks.includes('mastery'))p.blockHp=Math.ceil(p.might);
+  p.counterReady=false;enemy.dots={};enemy.stunTurns=0;
   gameState.combat={owner:null,playerTurns:0,enemyTurns:0,
     playerNext:100/p.speed,enemyNext:100/enemy.speed};
   selectEnemyIntent(enemy);
@@ -225,17 +231,11 @@ function continueCombat(){
     },420);
   }
 }
-function skillCooldownRemaining(){
-  const p=gameState.player,c=gameState.combat;
-  if(!c)return 0;
-  return Math.max(0,p.cooldownReadyAt-c.playerTurns);
-}
 function renderCombatUI(){
   if(!gameState.inCombat||!gameState.currentEnemy)return;
   const e=gameState.currentEnemy,p=gameState.player,c=gameState.combat;
   const intent=INTENTS[e.intent]||INTENTS.attack,turnReady=c?.owner==='player'&&!gameState.turnPending&&!gameState.paused;
-  const cd=skillCooldownRemaining(),cls=CLASSES[p.classId];
-  const ready=turnReady&&p.resource>=SKILLS[p.classId].cost&&cd===0&&!(p.classId==='fighter'&&p.blockHp>0)&&!(p.classId==='wizard'&&p.magicShieldTurns>0)&&!(p.classId==='rogue'&&p.dodgeReady);
+  const cls=CLASSES[p.classId];
   const extra=getCombatStatus();
   renderMainArea(`
     <div class="enemy-display">
@@ -251,11 +251,10 @@ function renderCombatUI(){
     ${extra.length?`<div class="combat-effects">${extra.map(s=>`<span>${escapeHtml(s)}</span>`).join('')}</div>`:''}
     <div class="action-buttons combat-actions">
       <button class="btn btn-danger" onclick="playerAttack()" ${!turnReady?'disabled':''}>⚔ Basic Attack</button>
-      <button class="btn btn-success" onclick="playerSkill()" title="${escapeHtml(cls.skillInfo)}" ${!ready?'disabled':''}>${p.classId==='fighter'?'◆':p.classId==='wizard'?'✧':'➤'} ${cls.skill} (${SKILLS[p.classId].cost} ${label(cls.resource)})${cd?` (CD ${cd})`:''}</button>
-      ${p.classId==='wizard'?`<button class="btn btn-danger" onclick="arcaneBolt()" ${!turnReady||p.resource<SKILLS.arcaneBolt.cost||c.playerTurns<p.boltReadyAt?'disabled':''}>Arcane Bolt · ${SKILLS.arcaneBolt.cost} Mana${p.boltReadyAt>c.playerTurns?` (CD ${p.boltReadyAt-c.playerTurns})`:''}</button>`:''}
+      ${skillButtons(turnReady)}
       <button class="btn" onclick="usePotion()" ${!turnReady||p.potions<=0||p.hp>=p.maxHp?'disabled':''}>✚ Potion (${p.potions})</button>
     </div>
-    <div class="combat-hint">${cls.skill}: ${cls.skillInfo} Cooldown ${SKILLS[p.classId].cooldown} of your turns. Regain ${BALANCE.resourceRegen} ${label(cls.resource)} each turn.</div>`);
+    <div class="combat-hint">Skills occupy ${BALANCE.skillSlots} slots. Cooldowns count your turns; damage-over-time counts enemy actions. Regain ${BALANCE.resourceRegen} ${label(cls.resource)} each turn.</div>`);
 }
 function startPlayerAction(){
   if(!combatAllowed()||gameState.turnPending||gameState.combat.owner!=='player')return false;
@@ -286,21 +285,7 @@ function playerAttack(){
   if(e.hp<=0){enemyDefeated();return;}
   finishPlayerAction();
 }
-function playerSkill(){
-  if(!combatAllowed()||gameState.combat.owner!=='player'||gameState.turnPending||skillCooldownRemaining()>0)return;
-  const p=gameState.player,c=gameState.combat;
-  if(p.resource<SKILLS[p.classId].cost)return;
-  if((p.classId==='fighter'&&p.blockHp>0)||(p.classId==='wizard'&&p.magicShieldTurns>0)||(p.classId==='rogue'&&p.dodgeReady))return;
-  if(!startPlayerAction())return;
-  p.resource-=SKILLS[p.classId].cost;
-  p.cooldownReadyAt=c.playerTurns+SKILLS[p.classId].cooldown+1;
-  switch(p.classId){
-    case 'fighter':p.blockHp=Math.max(1,Math.ceil(p.defense*SKILLS.fighter.shieldDefenseScale+p.might*SKILLS.fighter.shieldMightScale));updateLog(`Block raised! Shield absorbs up to ${p.blockHp} damage, countering for 70% on impact.`,'info');break;
-    case 'wizard':p.magicShieldTurns=SKILLS.wizard.duration;updateLog('Magic Shield active: -40% damage and 15% reflection for 2 enemy turns.','info');break;
-    case 'rogue':p.dodgeReady=true;p.dodgeBonus=true;updateLog('Dodge prepared: evade the next attack and empower your next strike by 50%.','info');break;
-  }
-  finishPlayerAction();
-}
+function playerSkill(){useSkill(gameState.player.classId);}
 function usePotion(){
   const p=gameState.player;
   if(!p||p.potions<=0||p.hp>=p.maxHp||!startPlayerAction())return;
@@ -318,9 +303,9 @@ function enemyAttack(multiplier=1,poison=false,drain=false){
     const absorbed=Math.min(dmg,p.blockHp);p.blockHp-=absorbed;dmg-=absorbed;
     updateLog(`Block absorbs ${absorbed} damage (${p.blockHp} shield left).`,'heal');
     // Counter attacks use the same flat Defense calculation and do not crit.
-    const counter=calculateDamage(Math.round(p.damage*.7),e.defense+e.armorBonus*(e.armorHits>0));
-    if(e.armorHits>0){e.armorHits--;if(e.armorHits===0)e.armorBonus=0;}
-    e.hp=Math.max(0,e.hp-counter);updateLog(`Block counterattacks ${e.name} for ${counter} damage!`,'combat');
+    const counter=p.counterReady?calculateDamage(Math.round(p.damage*.7),e.defense+e.armorBonus*(e.armorHits>0)):0;
+    if(p.counterReady&&e.armorHits>0){e.armorHits--;if(e.armorHits===0)e.armorBonus=0;}
+    e.hp=Math.max(0,e.hp-counter);if(p.counterReady)updateLog(`Block counterattacks ${e.name} for ${counter} damage!`,'combat');
   }
   p.hp=Math.max(0,p.hp-dmg);
   updateLog(`${e.name} hits you for ${dmg} damage${p.magicShieldTurns>0?' (Magic Shield)':''}.`,'combat');
@@ -335,6 +320,8 @@ function enemyAttack(multiplier=1,poison=false,drain=false){
 function resolveEnemyAction(){
   if(!combatAllowed())return;
   const e=gameState.currentEnemy,p=gameState.player,action=e.intent||'attack';
+  if(tickEnemyEffects(e))return;
+  if(e.stunTurns>0){e.stunTurns--;if(p.magicShieldTurns>0)p.magicShieldTurns--;updateLog(`${e.name} is stunned and skips an action.`,'info');return;}
   if(action==='prepare'){e.charged=true;updateLog(`${e.name} prepares a devastating attack!`,'boss');}
   else if(action==='armor'){e.armorBonus=3;e.armorHits=2;updateLog(`${e.name} raises armor: +3 Defense for 2 incoming attacks.`,'info');}
   else if(action==='enrage'){e.enraged=true;updateLog(`${e.name} ENRAGES! Damage increased by 30%.`,'boss');}
@@ -357,6 +344,8 @@ function enemyDefeated(){
   updateLog(`${e.name} defeated! +${e.xpReward} XP and +${gold} Gold.`,'loot');
   gameState.inCombat=false;gameState.currentEnemy=null;gameState.combat=null;
   p.poisonTurns=0;p.poisonDamage=0;p.blockHp=0;p.magicShieldTurns=0;p.dodgeReady=false;p.dodgeBonus=false;
+  if(p.perks.includes('utility'))p.resource=Math.min(p.maxResource,p.resource+2);
+  if(p.perks.includes('recovery'))p.hp=Math.min(p.maxHp,p.hp+Math.max(1,Math.floor(p.maxHp*.05)));
   gameState.turnPending=false;completeRoom();checkLevelUp();
   gameState.lootTitle=`Victory! +${e.xpReward} XP · +${gold} Gold`;
   grantLoot(e.id);
@@ -366,7 +355,7 @@ function checkLevelUp(onComplete=()=>{}){
   const p=gameState.player;
   while(p.xp>=xpThreshold(p.level)){
     p.xp-=xpThreshold(p.level);p.level++;p.ap+=BALANCE.apPerLevel;p.cp+=BALANCE.cpPerLevel;
-    updateLog(`Level ${p.level}! +${BALANCE.apPerLevel} AP, +${BALANCE.cpPerLevel} CP. Open Character whenever ready.`,'levelup');
+    updateLog(`Level ${p.level}! +${BALANCE.apPerLevel} AP, +${BALANCE.cpPerLevel} CP. Spend AP on Character and CP in Talents & Skills outside combat.`,'levelup');
   }
   renderUI();onComplete();
 }
@@ -440,13 +429,4 @@ async function init(){
 init();
 
 
-function arcaneBolt(){
- const p=gameState.player,c=gameState.combat,skill=SKILLS.arcaneBolt;
- if(p.classId!=='wizard'||!combatAllowed()||gameState.turnPending||c.owner!=='player'||c.playerTurns<p.boltReadyAt||p.resource<skill.cost)return;
- if(!startPlayerAction())return;
- p.resource-=skill.cost;p.boltReadyAt=c.playerTurns+skill.cooldown+1;
- const damage=Math.round(skill.baseDamage+p.level*skill.levelScale+p.intellect*skill.intellectScale);
- gameState.currentEnemy.hp=Math.max(0,gameState.currentEnemy.hp-damage);
- updateLog(`Arcane Bolt deals ${damage} arcane damage (ignores Defense).`,'combat');
- if(gameState.currentEnemy.hp<=0)enemyDefeated();else finishPlayerAction();
-}
+function arcaneBolt(){useSkill('arcaneBolt');}

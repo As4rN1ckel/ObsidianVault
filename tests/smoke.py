@@ -36,7 +36,7 @@ with sync_playwright() as pw:
  }''')
  page.wait_for_function('gameState.combat?.owner==="player"&&!gameState.turnPending')
  page.get_by_role('button',name='Arcane Bolt').click()
- assert page.evaluate('gameState.player.resource===17&&gameState.player.boltReadyAt===5')
+ assert page.evaluate('gameState.player.resource===17&&gameState.player.skillCooldowns.arcaneBolt===5')
  page.evaluate('''() => {
  cancelPendingActions();gameState.currentEnemy.hp=0;enemyDefeated();
  if(gameState.room!==2||!gameState.lootOpen||gameState.turnPending)throw Error('battle downtime');

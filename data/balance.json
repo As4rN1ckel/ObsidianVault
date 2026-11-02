@@ -41,5 +41,6 @@
   "enemyDamagePerFloor": 1.2,
   "bossDamageBase": 7,
   "bossDamagePerFloor": 1.8,
-  "materialStack": 10
+  "materialStack": 10,
+  "skillSlots": 3
 }

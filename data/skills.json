@@ -3,25 +3,97 @@
     "cost": 10,
     "cooldown": 2,
     "shieldDefenseScale": 1.5,
-    "shieldMightScale": 1
+    "shieldMightScale": 1,
+    "classId": "fighter",
+    "name": "Block",
+    "description": "Absorb damage using Defense + Might and counterattack.",
+    "starting": true
   },
   "wizard": {
     "cost": 12,
     "cooldown": 5,
     "duration": 2,
     "reduction": 0.4,
-    "reflection": 0.15
+    "reflection": 0.15,
+    "classId": "wizard",
+    "name": "Magic Shield",
+    "description": "Reduce damage by 40% and reflect 15% for 2 enemy actions.",
+    "starting": true
   },
   "rogue": {
     "cost": 10,
     "cooldown": 3,
-    "attackBonus": 1.5
+    "attackBonus": 1.5,
+    "classId": "rogue",
+    "name": "Dodge",
+    "description": "Evade the next hit; your next basic attack deals 50% more damage.",
+    "starting": true
   },
   "arcaneBolt": {
     "cost": 7,
     "cooldown": 3,
     "baseDamage": 4,
     "levelScale": 1,
-    "intellectScale": 1.2
+    "intellectScale": 1.2,
+    "classId": "wizard",
+    "name": "Arcane Bolt",
+    "description": "Arcane damage from level + Intellect; ignores Defense.",
+    "starting": true
+  },
+  "shieldBash": {
+    "classId": "fighter",
+    "name": "Shield Bash",
+    "cost": 7,
+    "cooldown": 4,
+    "multiplier": 0.8,
+    "description": "80% weapon damage and stun for 1 enemy action. No shield required."
+  },
+  "heavyStrike": {
+    "classId": "fighter",
+    "name": "Heavy Strike",
+    "cost": 9,
+    "cooldown": 5,
+    "multiplier": 1.6,
+    "ignoreDefense": 0.5,
+    "description": "160% weapon damage; ignores 50% of total Defense."
+  },
+  "poisonedBlade": {
+    "classId": "rogue",
+    "name": "Poisoned Blade",
+    "cost": 6,
+    "cooldown": 3,
+    "multiplier": 0.7,
+    "dotBase": 2,
+    "dotScale": 0.2,
+    "duration": 3,
+    "description": "70% weapon damage; poison for 3 enemy actions (2 + 20% Agility per tick)."
+  },
+  "backstab": {
+    "classId": "rogue",
+    "name": "Backstab",
+    "cost": 8,
+    "cooldown": 5,
+    "multiplier": 1.4,
+    "description": "140% weapon damage; ignores all Defense if no armor buff is active. Buffed targets retain full Defense."
+  },
+  "manaSurge": {
+    "classId": "wizard",
+    "name": "Mana Surge",
+    "costFraction": 0.5,
+    "cooldown": 6,
+    "healBase": 4,
+    "healScale": 0.8,
+    "description": "Spend half current Mana (rounded up, minimum 1); heal 4 + 80% Intellect and reduce other active cooldowns by 1 turn."
+  },
+  "manaBurn": {
+    "classId": "wizard",
+    "name": "Mana Burn",
+    "cost": 9,
+    "cooldown": 4,
+    "baseDamage": 3,
+    "intellectScale": 0.9,
+    "dotPercent": 0.01,
+    "duration": 3,
+    "description": "3 + 90% Intellect arcane damage, then burn 1% enemy Max HP for 3 enemy actions. Ignores Defense."
   }
 }
