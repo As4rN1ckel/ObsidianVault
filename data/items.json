@@ -6,15 +6,5 @@
     "backpacks",
     "accessories",
     "supplies"
-  ],
-  "legacyAliases": {
-    "sword": "practiceBlade",
-    "dagger": "butchersKnife",
-    "staff": "branchStaff",
-    "shield": "ironBuckler",
-    "focus": "woodenFocusRod",
-    "armor": "chainmailHauberk",
-    "backpack": "travelersPack",
-    "charm": "luckyCharm"
-  }
+  ]
 }

@@ -99,7 +99,7 @@ Run `python3 tests/enemies.py` for biome boundaries, enemy abilities, elite scal
 
 ## Item catalog and inventory
 
-`data/items.json` is the manifest for six catalog files under `data/items/`: weapons, armor, offhands, backpacks, accessories, and supplies. See [item data guide](data/items/README.md) for the schema, values, and floor availability. Items retain stable IDs. Legacy aliases migrate earlier serialized saves; a full old inventory receives sufficient backpack capacity rather than losing items.
+`data/items.json` is the manifest for six catalog files under `data/items/`: weapons, armor, offhands, backpacks, accessories, and supplies. See [item data guide](data/items/README.md) for the schema, values, and floor availability. Items retain stable IDs.
 
 Equipment and carried items are displayed separately. Carried items are grouped by slot, sorted by weapon/type and progression, and show derived stat differences against equipped gear. Percentages use readable rates and penalties use a minus sign.
 

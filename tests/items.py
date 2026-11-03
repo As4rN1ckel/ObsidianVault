@@ -1,4 +1,4 @@
-"""Equipment progression, capacity, special effects, inventory UI, and old saves."""
+"""Equipment progression, capacity, special effects, inventory UI,."""
 from playwright.sync_api import sync_playwright
 with sync_playwright() as pw:
  b=pw.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox'])
@@ -45,11 +45,6 @@ with sync_playwright() as pw:
  Object.assign(gameState,{inCombat:true,paused:false,panel:null,gameOver:false,turnPending:false,currentEnemy:enemy,combat:{owner:'player',playerTurns:1,enemyTurns:0,playerNext:20,enemyNext:20}});
  playerAttack();cancelPendingActions();assert(enemy.dots.weaponPoison?.turns===3,'weapon poison');const hp=enemy.hp;tickEnemyEffects(enemy);assert(enemy.hp<hp&&enemy.dots.weaponPoison.turns===2,'poison ticks');
  gameState.inCombat=false;gameState.combat=null;gameState.currentEnemy=null;gameState.turnPending=false;
- // Old saves contain embedded definitions. Refresh them and preserve their full backpack.
- gameState.player=makePlayer('Legacy','fighter','human');p=gameState.player;p.equipment.weapon={id:'sword',uid:800,name:'Sword',weaponDamage:7,slot:'weapon',mainAttribute:'might'};p.equipment.backpack=null;p.inventory=Array.from({length:14},(_,i)=>({...createItem('cloth'),uid:801+i}));
- gameState.characterId='legacy-test';saveCharacter(false);loadCharacter('legacy-test');p=gameState.player;
- assert(p.equipment.weapon.id==='practiceBlade'&&p.equipment.weapon.weaponDamage===3.5,'legacy weapon');assert(p.inventory.length===14&&p.backpackSlots===18,'legacy capacity preserved');
- const ids=[...p.inventory,...Object.values(p.equipment).filter(Boolean)].map(i=>i.uid);assert(new Set(ids).size===ids.length,'unique item IDs');
  p.inventory=[createItem('alchemistsVialDagger'),createItem('blacksmithsWarBlade'),createItem('leatherJerkin'),createItem('manaWellPendant'),createItem('scrap')];openPanel('inventory');
  assert(inventoryMarkup(p).includes('Weapons · 2'),'inventory grouping');assert(itemDescription(ITEMS.blacksmithsWarBlade).includes('-2 Speed')&&!itemDescription(ITEMS.blacksmithsWarBlade).includes('+-'),'signed modifiers');
  }''')
@@ -58,4 +53,4 @@ with sync_playwright() as pw:
  assert page.locator('.equipment-slot').count()==5
  page.screenshot(path='/tmp/obsidian-inventory.png',full_page=True)
  assert not errors,errors
- b.close();print('PASS: catalog, starting gear, backpack safety, special effects, fourth skill slot, legacy saves, inventory UI and mobile width')
+ b.close();print('PASS: catalog, starting gear, backpack safety, special effects, fourth skill slot, inventory UI and mobile width')

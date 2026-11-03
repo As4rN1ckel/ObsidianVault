@@ -383,7 +383,7 @@ async function init(){
     const names=['classes','races','enemies','bosses','intents','balance','items','perks','skills','loot','biomes'];
     const loaded=await Promise.all(names.map(async name=>{const r=await fetch(`data/${name}.json`);if(!r.ok)throw new Error(`${name}: HTTP ${r.status}`);return r.json();}));
     [CLASSES,RACES,ENEMY_TYPES,BOSSES,INTENTS,BALANCE,ITEMS,PERKS,SKILLS,LOOT,BIOMES]=loaded;
-    const catalog=ITEMS;ITEM_ALIASES=catalog.legacyAliases;ITEMS={};
+    const catalog=ITEMS;ITEMS={};
     const groups=await Promise.all(catalog.files.map(async file=>{const response=await fetch(`data/items/${file}.json`);if(!response.ok)throw Error('Unable to load item group: '+file);return response.json();}));
     for(const group of groups)for(const [id,item] of Object.entries(group)){if(ITEMS[id])throw Error('Duplicate item ID: '+id);ITEMS[id]=item;}
     loadRecord();renderMainMenu();

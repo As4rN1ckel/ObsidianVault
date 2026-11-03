@@ -1,7 +1,7 @@
 'use strict';
 const label=k=>k.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase());
-let nextItemId=1,panelOpener=null,ITEM_ALIASES={};
-function createItem(id){id=ITEM_ALIASES[id]||id;if(!ITEMS[id])throw Error('Unknown item: '+id);return {...structuredClone(ITEMS[id]),id,uid:nextItemId++,quantity:1};}
+let nextItemId=1,panelOpener=null;
+function createItem(id){if(!ITEMS[id])throw Error('Unknown item: '+id);return {...structuredClone(ITEMS[id]),id,uid:nextItemId++,quantity:1};}
 function recalculate(p){
   const flat={},percent={};
   const manaUser=CLASSES[p.classId].resource==='mana';
