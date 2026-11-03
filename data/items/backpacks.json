@@ -1,0 +1,52 @@
+{
+  "pouchBelt": {
+    "name": "Pouch Belt",
+    "slot": "backpack",
+    "type": "backpack",
+    "minFloor": 1,
+    "price": 24,
+    "flat": {
+      "backpackSlots": 6
+    }
+  },
+  "canvasSatchel": {
+    "name": "Canvas Satchel",
+    "slot": "backpack",
+    "type": "backpack",
+    "minFloor": 3,
+    "price": 32,
+    "flat": {
+      "backpackSlots": 8
+    }
+  },
+  "merchantsSack": {
+    "name": "Merchant's Sack",
+    "slot": "backpack",
+    "type": "backpack",
+    "minFloor": 6,
+    "price": 40,
+    "flat": {
+      "backpackSlots": 10
+    }
+  },
+  "scoutPack": {
+    "name": "Scout Pack",
+    "slot": "backpack",
+    "type": "backpack",
+    "minFloor": 10,
+    "price": 48,
+    "flat": {
+      "backpackSlots": 12
+    }
+  },
+  "travelersPack": {
+    "name": "Traveler's Pack",
+    "slot": "backpack",
+    "type": "backpack",
+    "minFloor": 15,
+    "price": 64,
+    "flat": {
+      "backpackSlots": 16
+    }
+  }
+}

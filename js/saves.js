@@ -69,6 +69,7 @@ function loadCharacter(id){
   Object.assign(gameState,{started:true,gameOver:false,paused:false,panel:null,turnPending:false,floorTransitioning:false});
   const items=[...gameState.player.inventory,...Object.values(gameState.player.equipment),...(gameState.pendingLoot||[]),...(gameState.merchantStock?.equipment||[])].filter(Boolean);
   nextItemId=Math.max(nextItemId,...items.map(item=>(item.uid||0)+1));
+  migrateCharacterItems();
   $container.classList.remove('hub-mode');$modalOverlay.classList.remove('active');$logArea.replaceChildren();
   storageMessage('Character loaded.');renderUI();
   // Restore the existing scene without granting rewards or regenerating stock.
@@ -81,6 +82,20 @@ function loadCharacter(id){
     default:showEntrance();
   }
   persistCharacter();updateLog(`${gameState.player.name} continues the descent.`,'info');
+}
+// Refresh serialized definitions so older saves use the current catalog and capacities.
+function migrateCharacterItems(){
+ const p=gameState.player;
+ const refresh=item=>{if(!item)return null;const id=ITEM_ALIASES[item.id]||item.id;return ITEMS[id]?{...structuredClone(ITEMS[id]),id,uid:item.uid,quantity:item.quantity||1}:item;};
+ const legacy=Object.values(p.equipment).some(item=>item&&ITEM_ALIASES[item.id]);
+ p.inventory=p.inventory.map(refresh);
+ for(const slot of Object.keys(p.equipment))p.equipment[slot]=refresh(p.equipment[slot]);
+ gameState.pendingLoot=(gameState.pendingLoot||[]).map(refresh);
+ if(gameState.merchantStock)gameState.merchantStock.equipment=gameState.merchantStock.equipment.map(refresh);
+ if(legacy&&!p.equipment.backpack)p.equipment.backpack=createItem(p.inventory.length>8?'travelersPack':'pouchBelt');
+ recalculate(p);
+ // Old fourteen-slot inventories must remain recoverable after the capacity change.
+ if(legacy&&p.inventory.length>p.backpackSlots){p.equipment.backpack=createItem('travelersPack');recalculate(p);}
 }
 function nextTurnOrder(count=5){
   const c=gameState.combat,p=gameState.player,e=gameState.currentEnemy;if(!c||!e)return [];

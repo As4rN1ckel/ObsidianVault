@@ -12,7 +12,7 @@ with sync_playwright() as pw:
  page.locator('#begin-run').click()
  page.evaluate('''() => {
  const assert=(v,m)=>{if(!v)throw Error(m)},p=gameState.player;
- assert(p.maxHp===49&&p.damage===9&&p.maxResource===24,'new wizard stats');
+ assert(p.maxHp===49&&p.damage===6&&p.maxResource===24,'new wizard stats');
  assert(!('tiers' in BALANCE),'tiers removed');
  p.ap=2;p.cp=1;const intellect=p.attributes.intellect;
  gameState.inCombat=true;openPanel('character');assert(!gameState.panel,'combat panel locked');
@@ -21,15 +21,15 @@ with sync_playwright() as pw:
  const material=createItem('scrap');material.quantity=10;assert(addLoot(material),'stack10');
  addLoot(createItem('scrap'));assert(p.inventory.length===2&&p.inventory[0].quantity===10&&p.inventory[1].quantity===1,'stack split');
  const gold=p.gold;gameState.floorLayout=['merchant'];gameState.room=1;sellItem(p.inventory[0].uid);assert(p.gold>gold,'stack sale');
- p.inventory=Array.from({length:14},()=>createItem('sword'));
- gameState.lootTitle='Test';gameState.pendingLoot=[createItem('armor')];gameState.lootOpen=true;renderLoot();
+ p.inventory=Array.from({length:p.backpackSlots},()=>createItem('practiceBlade'));
+ gameState.lootTitle='Test';gameState.pendingLoot=[createItem('leatherJerkin')];gameState.lootOpen=true;renderLoot();
  takeLoot(gameState.pendingLoot[0].uid);assert(gameState.pendingLoot.length===1,'full pack keeps loot');
  }''')
  page.locator('#inventory-button').click()
  page.locator('#management-panel').get_by_role('button',name='Discard',exact=True).first.click()
  page.get_by_role('button',name='Close',exact=True).click()
  page.get_by_role('button',name='Take',exact=True).click()
- assert page.evaluate('gameState.pendingLoot.length===0&&gameState.player.inventory.length===14')
+ assert page.evaluate('gameState.pendingLoot.length===0&&gameState.player.inventory.length===gameState.player.backpackSlots')
  page.evaluate('''() => {
  gameState.lootOpen=false;gameState.floorLayout=['entrance','enemy'];gameState.room=2;
  gameState.player.inventory=[];gameState.player.hp=gameState.player.maxHp;

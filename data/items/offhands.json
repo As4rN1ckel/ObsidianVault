@@ -1,0 +1,68 @@
+{
+  "woodenBuckler": {
+    "name": "Wooden Buckler",
+    "slot": "offhand",
+    "type": "shield",
+    "minFloor": 1,
+    "price": 19,
+    "flat": {
+      "defense": 1,
+      "blockChance": 0.02
+    }
+  },
+  "utilityBracer": {
+    "name": "Utility Bracer",
+    "slot": "offhand",
+    "type": "bracer",
+    "minFloor": 4,
+    "price": 31,
+    "flat": {
+      "defense": 1,
+      "agility": 1
+    }
+  },
+  "woodenFocusRod": {
+    "name": "Wooden Focus Rod",
+    "slot": "offhand",
+    "type": "focus",
+    "minFloor": 1,
+    "price": 19,
+    "flat": {
+      "intellect": 1,
+      "maxMana": 2
+    }
+  },
+  "spellWeaveGauntlet": {
+    "name": "Spell-Weave Gauntlet",
+    "slot": "offhand",
+    "type": "focus",
+    "minFloor": 6,
+    "price": 39,
+    "flat": {
+      "intellect": 2,
+      "maxMana": 4
+    }
+  },
+  "roundWoodenShield": {
+    "name": "Round Wooden Shield",
+    "slot": "offhand",
+    "type": "shield",
+    "minFloor": 5,
+    "price": 35,
+    "flat": {
+      "defense": 2,
+      "blockChance": 0.03
+    }
+  },
+  "ironBuckler": {
+    "name": "Iron Buckler",
+    "slot": "offhand",
+    "type": "shield",
+    "minFloor": 9,
+    "price": 51,
+    "flat": {
+      "defense": 3,
+      "blockChance": 0.05
+    }
+  }
+}

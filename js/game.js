@@ -33,7 +33,7 @@ function buildStats(classKey,raceKey){
 function makePlayer(name,classKey,raceKey){
   const p={name:name.trim().slice(0,20)||'Adventurer',classId:classKey,raceId:raceKey,
     attributes:buildStats(classKey,raceKey),ap:0,cp:0,perks:[],inventory:[],
-    equipment:{weapon:createItem(CLASSES[classKey].weapon,0),offhand:null,armor:null,backpack:null,accessory:null},
+    equipment:{weapon:createItem(CLASSES[classKey].weapon,0),offhand:null,armor:null,backpack:createItem('pouchBelt'),accessory:null},
     hp:Infinity,resource:Infinity,potions:0,gold:0,xp:0,level:1,totalGoldEarned:0,
     skillCooldowns:{},equippedSkills:Object.keys(SKILLS).filter(id=>SKILLS[id].classId===classKey&&SKILLS[id].starting),blockHp:0,dodgeReady:false,dodgeBonus:false,magicShieldTurns:0,poisonTurns:0,poisonDamage:0};
   recalculate(p);return p;
@@ -78,7 +78,7 @@ function updateHubPreview(){
   const klass=selectedHeroOption('hero-class','fighter'),race=selectedHeroOption('hero-race','human');
   const p=makePlayer('',klass,race),c=CLASSES[klass];
   $('stat-preview').innerHTML=BALANCE.attributes.map(k=>`<span><small>${label(k)}</small><b>${p[k]}</b></span>`).join('')+`<span><small>HP / Damage</small><b>${p.maxHp} / ${p.damage}</b></span>`;
-  $('skill-preview').textContent=`${c.skill} · ${SKILLS[klass].cost} ${label(c.resource)} · ${c.skillInfo} Starts with ${ITEMS[c.weapon].name} only.`;
+  $('skill-preview').textContent=`${c.skill} · ${SKILLS[klass].cost} ${label(c.resource)} · ${c.skillInfo} Starts with ${ITEMS[c.weapon].name} and a Pouch Belt.`;
 }
 
 function startRun(){
@@ -103,7 +103,7 @@ function renderUI(){
   $('xp-bar').style.width=clamp(p.xp/needed*100,0,100)+'%';$('xp-text').textContent=`${p.xp} / ${needed}`;
   $('hud-identity').textContent=`${p.name} · Lv ${p.level} ${CLASSES[p.classId].name} · ${RACES[p.raceId].name}`;
   const resource=label(CLASSES[p.classId].resource);
-  $('resource-display').innerHTML=`<span class="hud-label">${resource==='Mana'?'✧':'◆'} ${resource.toUpperCase()}<small class="resource-regen">+${BALANCE.resourceRegen} / turn</small></span><div class="hp-bar-container"><div class="hp-bar-outer resource-bar-outer ${CLASSES[p.classId].resource}" role="progressbar" aria-label="${resource}" aria-valuemin="0" aria-valuemax="${p.maxResource}" aria-valuenow="${p.resource}"><div class="hp-bar-inner resource-bar-inner" style="width:${clamp(p.resource/p.maxResource*100,0,100)}%"></div></div><span class="hp-text">${p.resource} / ${p.maxResource}</span></div>`;
+  $('resource-display').innerHTML=`<span class="hud-label">${resource==='Mana'?'✧':'◆'} ${resource.toUpperCase()}<small class="resource-regen">+${p.resourceRegen} / turn</small></span><div class="hp-bar-container"><div class="hp-bar-outer resource-bar-outer ${CLASSES[p.classId].resource}" role="progressbar" aria-label="${resource}" aria-valuemin="0" aria-valuemax="${p.maxResource}" aria-valuenow="${p.resource}"><div class="hp-bar-inner resource-bar-inner" style="width:${clamp(p.resource/p.maxResource*100,0,100)}%"></div></div><span class="hp-text">${p.resource} / ${p.maxResource}</span></div>`;
   $('hud-stats').innerHTML=Object.entries({Damage:p.damage,Defense:p.defense,Speed:p.speed,'Critical chance':percentText(p.critChance),'Dodge chance':percentText(p.dodgeChance),Gold:p.gold,Potions:`${p.potions}/${BALANCE.potionSlots}`,Backpack:`${p.inventory.length}/${p.backpackSlots}`}).map(([name,value])=>`<span>${name}<b>${value}</b></span>`).join('');
   $('save-button').disabled=!canSaveCharacter();$('menu-button').disabled=!canSaveCharacter()&&!gameState.gameOver;
   $('character-button').textContent=`Character · ${p.ap} AP`;
@@ -196,7 +196,7 @@ function continueCombat(){
       updateLog(`Poison deals ${p.poisonDamage} damage (${p.poisonTurns} turns left).`,'combat');
       if(p.hp<=0){renderUI();gameOver();return;}
     }
-    p.resource=Math.min(p.maxResource,p.resource+BALANCE.resourceRegen);gameState.turnPending=false;renderUI();renderCombatUI();
+    p.resource=Math.min(p.maxResource,p.resource+p.resourceRegen);gameState.turnPending=false;renderUI();renderCombatUI();
   }else{
     c.owner='enemy';gameState.turnPending=true;renderCombatUI();
     scheduleAction(()=>{
@@ -248,7 +248,7 @@ function attackDamage(attacker,target,multiplier=1,canCrit=false){
   const variance=rand(-1,2),raw=Math.max(1,Math.round(attacker.damage*multiplier)+variance);
   const crit=canCrit&&Math.random()<(attacker.critChance??critChance(attacker.luck));
   const total=crit?Math.round(raw*1.5):raw;
-  const armor=target.defense+(target.armorHits>0?target.armorBonus:0);
+  const armor=Math.floor((target.defense+(target.armorHits>0?target.armorBonus:0))*(1-(attacker.armorPenetration||0)));
   const damage=calculateDamage(total,armor);
   if(target.armorHits>0){target.armorHits--;if(target.armorHits===0)target.armorBonus=0;}
   return {damage,crit};
@@ -259,6 +259,8 @@ function playerAttack(){
   const bonus=p.dodgeBonus?SKILLS.rogue.attackBonus:1;p.dodgeBonus=false;
   const hit=attackDamage(p,e,bonus,true);e.hp=Math.max(0,e.hp-hit.damage);
   updateLog(`You strike ${e.name} for ${hit.damage} damage${hit.crit?' — CRITICAL!':''}${bonus>1?' (Dodge bonus)':''}.`,'combat');
+  const poison=p.equipment.weapon?.onHit?.poison;
+  if(e.hp>0&&poison){e.dots.weaponPoison={damage:Math.max(1,Math.round(poison.baseDamage+p.agility*poison.agilityScale)),turns:poison.turns};updateLog('The vial dagger poisons its target.','combat');}
   if(e.hp<=0){enemyDefeated();return;}
   finishPlayerAction();
 }
@@ -381,6 +383,9 @@ async function init(){
     const names=['classes','races','enemies','bosses','intents','balance','items','perks','skills','loot','biomes'];
     const loaded=await Promise.all(names.map(async name=>{const r=await fetch(`data/${name}.json`);if(!r.ok)throw new Error(`${name}: HTTP ${r.status}`);return r.json();}));
     [CLASSES,RACES,ENEMY_TYPES,BOSSES,INTENTS,BALANCE,ITEMS,PERKS,SKILLS,LOOT,BIOMES]=loaded;
+    const catalog=ITEMS;ITEM_ALIASES=catalog.legacyAliases;ITEMS={};
+    const groups=await Promise.all(catalog.files.map(async file=>{const response=await fetch(`data/items/${file}.json`);if(!response.ok)throw Error('Unable to load item group: '+file);return response.json();}));
+    for(const group of groups)for(const [id,item] of Object.entries(group)){if(ITEMS[id])throw Error('Duplicate item ID: '+id);ITEMS[id]=item;}
     loadRecord();renderMainMenu();
   }catch(error){renderMainArea(`<h2>Unable to load game data</h2><p>Serve this folder over HTTP and reload.</p><p>${escapeHtml(error.message)}</p><button class="btn" onclick="location.reload()">Retry</button>`);}
 }

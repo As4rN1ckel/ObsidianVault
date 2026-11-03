@@ -52,7 +52,7 @@ with sync_playwright() as pw:
  if(gameState.player.blockHp!==0||gameState.player.counterReady)throw Error('Block must be consumed');
  const before=gameState.player.hp;enemyAttack();
  if(gameState.currentEnemy.hp!==hp||gameState.player.hp>=before)throw Error('Repeated block/counter');
- Math.random=original;renderUI();renderCombatUI();saveCharacter();
+ Math.random=original;recalculate(gameState.player);renderUI();renderCombatUI();saveCharacter();
  }''')
  saved=page.evaluate('JSON.stringify([gameState.player,gameState.currentEnemy,gameState.combat])')
  order=page.evaluate('nextTurnOrder()')

@@ -1,0 +1,51 @@
+{
+  "potion": {
+    "name": "Healing Potion",
+    "slot": "consumable",
+    "price": 16,
+    "description": "Restore 30% Max HP. Equip up to 6.",
+    "type": "potion"
+  },
+  "scrap": {
+    "name": "Scrap Metal",
+    "kind": "material",
+    "category": "Basic",
+    "price": 5,
+    "type": "material"
+  },
+  "leather": {
+    "name": "Leather",
+    "kind": "material",
+    "category": "Basic",
+    "price": 6,
+    "type": "material"
+  },
+  "cloth": {
+    "name": "Cloth",
+    "kind": "material",
+    "category": "Basic",
+    "price": 4,
+    "type": "material"
+  },
+  "ore": {
+    "name": "Iron Ore",
+    "kind": "material",
+    "category": "Advanced",
+    "price": 12,
+    "type": "material"
+  },
+  "residue": {
+    "name": "Magic Residue",
+    "kind": "material",
+    "category": "Advanced",
+    "price": 15,
+    "type": "material"
+  },
+  "core": {
+    "name": "Beast Cores",
+    "kind": "material",
+    "category": "Advanced",
+    "price": 18,
+    "type": "material"
+  }
+}

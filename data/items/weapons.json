@@ -1,0 +1,145 @@
+{
+  "butchersKnife": {
+    "name": "Butcher's Knife",
+    "slot": "weapon",
+    "type": "dagger",
+    "minFloor": 1,
+    "price": 17,
+    "mainAttribute": "agility",
+    "weaponDamage": 3
+  },
+  "boneHandleDagger": {
+    "name": "Bone-Handle Dagger",
+    "slot": "weapon",
+    "type": "dagger",
+    "minFloor": 3,
+    "price": 27,
+    "mainAttribute": "agility",
+    "weaponDamage": 5
+  },
+  "coinPurseSwitchblade": {
+    "name": "Coin Purse Switchblade",
+    "slot": "weapon",
+    "type": "dagger",
+    "minFloor": 6,
+    "price": 42,
+    "mainAttribute": "agility",
+    "weaponDamage": 7
+  },
+  "needleblade": {
+    "name": "Needleblade",
+    "slot": "weapon",
+    "type": "dagger",
+    "minFloor": 9,
+    "price": 57,
+    "mainAttribute": "agility",
+    "weaponDamage": 9
+  },
+  "practiceBlade": {
+    "name": "Practice Blade",
+    "slot": "weapon",
+    "type": "sword",
+    "minFloor": 1,
+    "price": 17,
+    "mainAttribute": "might",
+    "weaponDamage": 3.5
+  },
+  "woodcutlersBlade": {
+    "name": "Woodcutler's Blade",
+    "slot": "weapon",
+    "type": "sword",
+    "minFloor": 3,
+    "price": 27,
+    "mainAttribute": "might",
+    "weaponDamage": 6
+  },
+  "cleaverSword": {
+    "name": "Cleaver-Sword",
+    "slot": "weapon",
+    "type": "sword",
+    "minFloor": 6,
+    "price": 42,
+    "mainAttribute": "might",
+    "weaponDamage": 8
+  },
+  "ironShortsword": {
+    "name": "Iron Shortsword",
+    "slot": "weapon",
+    "type": "sword",
+    "minFloor": 9,
+    "price": 57,
+    "mainAttribute": "might",
+    "weaponDamage": 10
+  },
+  "branchStaff": {
+    "name": "Branch Staff",
+    "slot": "weapon",
+    "type": "staff",
+    "minFloor": 1,
+    "price": 17,
+    "mainAttribute": "intellect",
+    "weaponDamage": 3
+  },
+  "pilgrimsWalkingStick": {
+    "name": "Pilgrim's Walking Stick",
+    "slot": "weapon",
+    "type": "staff",
+    "minFloor": 3,
+    "price": 27,
+    "mainAttribute": "intellect",
+    "weaponDamage": 5
+  },
+  "apprenticesFocusRod": {
+    "name": "Apprentice's Focus Rod",
+    "slot": "weapon",
+    "type": "staff",
+    "minFloor": 6,
+    "price": 42,
+    "mainAttribute": "intellect",
+    "weaponDamage": 7
+  },
+  "ritualOakStaff": {
+    "name": "Ritual Oak Staff",
+    "slot": "weapon",
+    "type": "staff",
+    "minFloor": 9,
+    "price": 57,
+    "mainAttribute": "intellect",
+    "weaponDamage": 9,
+    "flat": {
+      "skillSlots": 1
+    },
+    "description": "Grants one extra active ability slot while equipped."
+  },
+  "alchemistsVialDagger": {
+    "name": "Alchemist's Vial Dagger",
+    "slot": "weapon",
+    "type": "dagger",
+    "minFloor": 8,
+    "price": 65,
+    "mainAttribute": "agility",
+    "weaponDamage": 8,
+    "onHit": {
+      "poison": {
+        "baseDamage": 2,
+        "agilityScale": 0.2,
+        "turns": 3
+      }
+    },
+    "description": "Basic attacks poison for 3 enemy actions. Reapplication refreshes the effect."
+  },
+  "blacksmithsWarBlade": {
+    "name": "Blacksmith's War Blade",
+    "slot": "weapon",
+    "type": "sword",
+    "minFloor": 10,
+    "price": 85,
+    "mainAttribute": "might",
+    "weaponDamage": 12,
+    "flat": {
+      "speed": -2,
+      "armorPenetration": 0.4
+    },
+    "description": "Physical weapon attacks ignore 40% of Defense."
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "luckyCharm": {
+    "name": "Lucky Charm",
+    "slot": "accessory",
+    "type": "charm",
+    "minFloor": 2,
+    "price": 30,
+    "flat": {
+      "luck": 2
+    }
+  },
+  "manaWellPendant": {
+    "name": "Pendant of the Mana Well",
+    "slot": "accessory",
+    "type": "pendant",
+    "minFloor": 5,
+    "price": 50,
+    "flat": {
+      "maxMana": 6,
+      "manaRegen": 1
+    }
+  },
+  "ironGripRing": {
+    "name": "Iron Grip Ring",
+    "slot": "accessory",
+    "type": "ring",
+    "minFloor": 3,
+    "price": 35,
+    "flat": {
+      "might": 1,
+      "vitality": 1
+    }
+  }
+}

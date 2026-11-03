@@ -18,8 +18,8 @@ Open the server in a browser. HTTP serving is required because game definitions 
 - Weapons scale Damage with their main attribute. Vitality adds HP and a small amount of Defense; Agility adds Dodge and action speed; Luck adds critical chance and gold finds.
 - Wizards use Mana; Fighters and Rogues use Stamina. Skills spend resources, which regenerate each player turn.
 - Each level awards **2 AP and 1 CP**. Open **Character** outside combat to spend AP and inspect derived stats; use **Talents & Skills** for CP perks, skill unlocks, and your loadout. Levelling never forces a modal. Each class has nine one-CP talent nodes across three columns: Stats & Attributes, Combat Specialization, and Mastery & Utility.
-- **Inventory & Equipment** manages Weapon, Off-Hand, Armor, Backpack, Accessory, and a Consumable belt. New characters start with their class weapon only.
-- Backpack starts at 14 slots; gear takes one slot and materials stack to 10 per slot. The potion belt holds six healing potions. Gear can expand backpack capacity; removing it cannot overflow inventory.
+- **Inventory & Equipment** manages Weapon, Off-Hand, Armor, Backpack, Accessory, and a Consumable belt. New characters start with their class weapon and the Pouch Belt.
+- Inventory has 2 base slots, plus 6 from the starting Pouch Belt (8 total); gear takes one slot and materials stack to 10 per slot. The potion belt holds six healing potions. Gear can expand backpack capacity; removing it cannot overflow inventory.
 - Items have individual definitions without quality tiers. Flat bonuses apply first, then summed percentage modifiers.
 - Merchants have 2–5 potions and limited equipment. Sell spare gear and materials at 35% value. Materials currently have no crafting use.
 - Each floor has one entrance, one guardian, one fountain and one merchant (rooms 3–9), one or two treasure rooms (rooms 2–9), one empty room, and enemies in remaining rooms. Rooms 10 on floors 1–4 and 6–9 contain elites; floors 5 and 10 end in a boss and Warden respectively. Defeat the floor-10 Warden to win.
@@ -43,7 +43,7 @@ The HUD displays Speed, critical/dodge chances, and inventory capacity. Mana/Sta
 - `js/enemies.js`: biome encounter selection, guardian scaling, enemy intent execution, and Warden phase changes.
 - `js/skills.js`: talent/loadout presentation, independent skill cooldowns, skill effects and enemy DoT processing.
 - `js/systems.js`: derived stats, equipment, inventory, merchants, loot, progression panels.
-- `data/`: classes, races, biomes, enemies, bosses, skills, intents, perks, items, enemy loot pools and balance constants. Tune these definitions without editing the combat loop. Item `flat` and `percent` maps can modify attributes and derived stats; percentages use decimal fractions (0.05 = 5%). Rates such as `critChance` use decimal fractions for flat bonuses too (0.02 = two percentage points).
+- `data/`: classes, races, biomes, enemies, bosses, skills, intents, perks, the grouped item catalog, enemy loot pools and balance constants. Tune these definitions without editing the combat loop. Item `flat` and `percent` maps can modify attributes and derived stats; percentages use decimal fractions (0.05 = 5%). Rates such as `critChance` use decimal fractions for flat bonuses too (0.02 = two percentage points).
 
 ## Validation
 
@@ -52,6 +52,7 @@ With the server running, Python Playwright and system Chromium installed:
 ```sh
 python3 tests/smoke.py
 python3 tests/saves.py
+python3 tests/items.py
 ```
 
 The smoke test checks new starting stats, combat management locks, material stacks and sales, full-backpack loot recovery, Arcane Bolt, manual battle downtime, enemy loot pools, 2,000 floor layouts and mobile width. Balance values remain initial tuning; a full-run balance playtest is still needed.
@@ -61,7 +62,7 @@ Balance update: lower starting HP/attributes and resource capacity; 2 resource r
 
 ## Talents & Skills
 
-Players have three active slots shared by starting and unlocked skills. Basic Attack and potions do not use slots. Fighters start with Block, Rogues with Dodge, and Wizards with Magic Shield and Arcane Bolt. New unlocks automatically occupy an empty slot; otherwise slot them manually. Skill slots and CP/AP spending cannot change during combat. Cooldowns reset each battle and count intervening player turns; DoTs tick at the start of enemy actions (even if stunned). Reapplying the same DoT refreshes it without stacking.
+Players have three active slots shared by starting and unlocked skills; equipping Ritual Oak Staff grants a fourth. Unslot the fourth ability before removing that staff. Basic Attack and potions do not use slots. Fighters start with Block, Rogues with Dodge, and Wizards with Magic Shield and Arcane Bolt. New unlocks automatically occupy an empty slot; otherwise slot them manually. Skill slots and CP/AP spending cannot change during combat. Cooldowns reset each battle and count intervening player turns; DoTs tick at the start of enemy actions (even if stunned). Reapplying the same DoT refreshes it without stacking.
 
 | Unlock | Resource cost | Cooldown | Effect |
 | --- | --- | --- | --- |
@@ -92,6 +93,14 @@ The Alpha has Lunging Bite and a one-use howl that boosts Damage by 20%. The War
 
 `data/biomes.json` controls floor ranges, normal pools, elite pools, and bosses. Guardian selection is seeded for each floor. `data/intents.json` contains ability descriptions and effect parameters. Both ordinary and elite loot pools live in `data/loot.json`, with elites using `elite_<enemyId>` keys. All enemy pools default to `goldDrop: false` and `goldAmount: 0`. Set both `goldDrop: true` and a positive `goldAmount` to enable a kill reward; Luck's gold modifier then applies. Treasure, floor-clear rewards, and merchant sales still provide gold. Normal enemies drop materials/potions, elites have a 50% equipment chance, and bosses/Warden guarantee equipment.
 
-Starter weapon base Damage is 7 for the Sword and 6 for Staff/Dagger; main-attribute contribution is 0.4 per point. Full-run difficulty and merchant economy still need playtesting with these lower weapon values and no regular kill gold.
+Starter base Damage is 3.5 for Practice Blade and 3 for Branch Staff/Butcher's Knife; main-attribute contribution is 0.4 per point. Full-run difficulty and merchant economy still need playtesting with these lower weapon values and no regular kill gold.
 
 Run `python3 tests/enemies.py` for biome boundaries, enemy abilities, elite scaling, gold settings, Warden phases and the final victory flow.
+
+## Item catalog and inventory
+
+`data/items.json` is the manifest for six catalog files under `data/items/`: weapons, armor, offhands, backpacks, accessories, and supplies. See [item data guide](data/items/README.md) for the schema, values, and floor availability. Items retain stable IDs. Legacy aliases migrate earlier serialized saves; a full old inventory receives sufficient backpack capacity rather than losing items.
+
+Equipment and carried items are displayed separately. Carried items are grouped by slot, sorted by weapon/type and progression, and show derived stat differences against equipped gear. Percentages use readable rates and penalties use a minus sign.
+
+Gear uses `minFloor` for both merchant stock and equipment loot. The catalog anticipates floors 1–20; the dungeon remains capped at 10. Traveler's Pack first becomes available at floor 15. Gear balance, especially halved starting weapon damage, still needs full-run playtesting.

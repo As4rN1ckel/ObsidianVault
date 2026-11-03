@@ -8,7 +8,7 @@
   ],
   "roomsPerFloor": 10,
   "maxFloor": 10,
-  "backpackSlots": 14,
+  "backpackSlots": 2,
   "potionSlots": 6,
   "apPerLevel": 2,
   "cpPerLevel": 1,

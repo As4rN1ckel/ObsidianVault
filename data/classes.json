@@ -1,7 +1,7 @@
 {
   "fighter": {
     "name": "Fighter",
-    "icon": "\u265c",
+    "icon": "♜",
     "description": "Durable frontline combatant",
     "skill": "Block",
     "skillInfo": "Absorb up to 150% Defense + Might from the next landed hit; counterattack once for 70% Damage.",
@@ -12,12 +12,12 @@
       "vitality": 6,
       "luck": 2
     },
-    "weapon": "sword",
+    "weapon": "practiceBlade",
     "resource": "stamina"
   },
   "wizard": {
     "name": "Wizard",
-    "icon": "\u2727",
+    "icon": "✧",
     "description": "Arcane defense specialist",
     "skill": "Magic Shield",
     "skillInfo": "For 2 enemy turns, reduce damage by 40% and reflect 15% of damage taken.",
@@ -28,12 +28,12 @@
       "vitality": 4,
       "luck": 3
     },
-    "weapon": "staff",
+    "weapon": "branchStaff",
     "resource": "mana"
   },
   "rogue": {
     "name": "Rogue",
-    "icon": "\u2694",
+    "icon": "⚔",
     "description": "Swift and precise duelist",
     "skill": "Dodge",
     "skillInfo": "Evade the next attack and gain +50% damage on your next basic attack.",
@@ -44,7 +44,7 @@
       "vitality": 4,
       "luck": 4
     },
-    "weapon": "dagger",
+    "weapon": "butchersKnife",
     "resource": "stamina"
   }
 }

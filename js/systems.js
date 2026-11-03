@@ -1,9 +1,10 @@
 'use strict';
 const label=k=>k.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase());
-let nextItemId=1,panelOpener=null;
-function createItem(id){return {...structuredClone(ITEMS[id]),id,uid:nextItemId++,quantity:1};}
+let nextItemId=1,panelOpener=null,ITEM_ALIASES={};
+function createItem(id){id=ITEM_ALIASES[id]||id;if(!ITEMS[id])throw Error('Unknown item: '+id);return {...structuredClone(ITEMS[id]),id,uid:nextItemId++,quantity:1};}
 function recalculate(p){
   const flat={},percent={};
+  const manaUser=CLASSES[p.classId].resource==='mana';
   const effects=[...Object.values(p.equipment).filter(Boolean),...PERKS[p.classId].filter(x=>p.perks.includes(x.id))];
   for(const effect of effects)for(const [kind,target] of [['flat',flat],['percent',percent]])for(const [key,value] of Object.entries(effect[kind]||{}))target[key]=(target[key]||0)+value;
   const value=(key,base)=> (base+(flat[key]||0))*(1+(percent[key]||0));
@@ -12,12 +13,15 @@ function recalculate(p){
   p.maxHp=Math.max(1,Math.round(value('maxHp',BALANCE.hpBase+p.vitality*BALANCE.hpPerVitality)));
   p.damage=Math.max(1,Math.round(value('damage',weapon?(weapon.weaponDamage+p[weapon.mainAttribute]*BALANCE.damagePerAttribute):1)));
   p.defense=Math.max(0,Math.floor(value('defense',p.vitality*BALANCE.defensePerVitality)));
-  p.maxResource=Math.max(1,Math.round(value('maxResource',BALANCE.resourceBase+(CLASSES[p.classId].resource==='mana'?p.intellect:p.vitality)*BALANCE.resourcePerAttribute)));
+  p.maxResource=Math.max(1,Math.round(value('maxResource',BALANCE.resourceBase+(manaUser?p.intellect:p.vitality)*BALANCE.resourcePerAttribute+(manaUser?(flat.maxMana||0):0))));
   p.critChance=clamp(value('critChance',critChance(p.luck)),0,BALANCE.critCap);
   p.dodgeChance=clamp(value('dodgeChance',BALANCE.dodgeBase+p.agility*BALANCE.dodgePerAgility),0,BALANCE.dodgeCap);
   p.blockChance=clamp(value('blockChance',BALANCE.blockBase),0,BALANCE.blockCap);
   p.speed=Math.max(1,Math.round(value('speed',BALANCE.speedBase+p.agility*BALANCE.speedPerAgility)));
   p.backpackSlots=Math.max(BALANCE.backpackSlots,Math.floor(value('backpackSlots',BALANCE.backpackSlots)));
+  p.resourceRegen=Math.max(0,value('resourceRegen',BALANCE.resourceRegen+(manaUser?(flat.manaRegen||0):0)));
+  p.skillSlots=Math.max(1,Math.floor(value('skillSlots',BALANCE.skillSlots)));
+  p.armorPenetration=clamp(value('armorPenetration',0),0,1);
   p.hp=clamp(p.hp,0,p.maxHp);p.resource=clamp(p.resource,0,p.maxResource);
 }
 function canManage(){return gameState.started&&!gameState.gameOver&&!gameState.floorTransitioning&&!gameState.turnPending&&!gameState.inCombat;}
@@ -56,19 +60,33 @@ function characterMarkup(p){
   `;
 }
 function spendAttribute(key){if(gameState.inCombat)return;const p=gameState.player;if(gameState.panel!=='character'||p.ap<1||!BALANCE.attributes.includes(key))return;p.ap--;p.attributes[key]++;recalculate(p);renderUI();renderPanel();}
-function learnPerk(id){if(gameState.inCombat)return;const p=gameState.player,perk=PERKS[p.classId].find(x=>x.id===id);if(gameState.panel!=='talents'||!perk||p.cp<1||p.perks.includes(id)||!perk.requires.every(x=>p.perks.includes(x)))return;p.cp--;p.perks.push(id);if(perk.skill&&p.equippedSkills.length<BALANCE.skillSlots)p.equippedSkills.push(perk.skill);recalculate(p);renderUI();renderPanel();}
-function itemDescription(item){return [item.slot?label(item.slot):item.category,...(item.weaponDamage?[`${item.weaponDamage} base Damage + ${label(item.mainAttribute)} scaling`]:[]),...Object.entries(item.flat||{}).map(([k,v])=>`+${Math.round(v*100)/100} ${label(k)}`),...Object.entries(item.percent||{}).map(([k,v])=>`+${percentText(v)} ${label(k)}`),item.description||''].filter(Boolean).join(' · ');}
+function learnPerk(id){if(gameState.inCombat)return;const p=gameState.player,perk=PERKS[p.classId].find(x=>x.id===id);if(gameState.panel!=='talents'||!perk||p.cp<1||p.perks.includes(id)||!perk.requires.every(x=>p.perks.includes(x)))return;p.cp--;p.perks.push(id);if(perk.skill&&p.equippedSkills.length<p.skillSlots)p.equippedSkills.push(perk.skill);recalculate(p);renderUI();renderPanel();}
+function signedStat(key,value,percent=false){
+ const rate=percent||['critChance','dodgeChance','blockChance','armorPenetration'].includes(key);
+ const name={maxMana:'Max Mana',manaRegen:'Mana / turn',resourceRegen:'Resource / turn',skillSlots:'Ability slots',backpackSlots:'Backpack slots'}[key]||label(key);
+ return `${value>=0?'+':''}${rate?percentText(value):Math.round(value*100)/100} ${name}`;
+}
+function itemDescription(item){return [item.type?label(item.type):label(item.slot||item.kind),...(item.weaponDamage?[`${item.weaponDamage} base Damage · ${label(item.mainAttribute)} scaling`]:[]),...Object.entries(item.flat||{}).map(([k,v])=>signedStat(k,v)),...Object.entries(item.percent||{}).map(([k,v])=>signedStat(k,v,true)),item.description||''].filter(Boolean).join(' · ');}
 function itemRow(item,actions){return `<div class="item-row"><div><strong>${escapeHtml(item.name)}${(item.quantity||1)>1?' ×'+item.quantity:''}</strong><small>${escapeHtml(itemDescription(item))}</small></div><div class="item-actions">${actions}</div></div>`;}
+function equipmentComparison(item,p){
+ if(!item.slot||item.slot==='consumable')return '';
+ const preview=structuredClone(p);preview.equipment[item.slot]=item;recalculate(preview);
+ const stats=['damage','defense','speed','maxHp','maxResource','resourceRegen','skillSlots','backpackSlots','critChance','dodgeChance','blockChance','armorPenetration'];
+ const changes=stats.filter(k=>Math.abs(preview[k]-p[k])>.00001).map(k=>`<span class="${preview[k]>p[k]?'gain':'loss'}">${escapeHtml(signedStat(k,preview[k]-p[k]))}</span>`).join('');
+ return `<div class="gear-comparison">${changes||'<span>No combat stat change</span>'}</div>`;
+}
 function inventoryMarkup(p){
-  return `<section class="panel-section"><h3>Equipment</h3>${Object.entries(p.equipment).map(([slot,item])=>item?itemRow(item,`<button class="btn" onclick="unequip('${slot}')">Unequip</button>`):`<div class="item-row"><span>${label(slot)} · Empty</span></div>`).join('')}
-  <div class="item-row"><div><strong>Consumable · Healing Potions ${p.potions}/${BALANCE.potionSlots}</strong><small>One equipped potion per belt slot. Drinking consumes an action in combat.</small></div><button class="btn" onclick="stowPotion()" ${p.potions<1||p.inventory.length>=p.backpackSlots?'disabled':''}>Store</button><button class="btn" onclick="drinkOutsideCombat()" ${gameState.inCombat||p.potions<1||p.hp>=p.maxHp?'disabled':''}>Drink</button></div></section>
-  <section class="panel-section"><h3>Backpack · ${p.inventory.length}/${p.backpackSlots} slots</h3><p class="help-text">Materials stack up to 10 per slot. Equip or sell loot to make room.</p>${p.inventory.map(item=>itemRow(item,`${item.slot?`<button class="btn" onclick="equip(${item.uid})">${item.id==='potion'?'Move to belt':'Equip'}</button>`:''}<button class="btn" onclick="discardItem(${item.uid})">Discard</button>`)).join('')||'<p class="help-text">Your backpack is empty. Find loot in battles and treasure rooms.</p>'}</section>`;
+ const groups=[['weapon','Weapons'],['offhand','Off-hands'],['armor','Armor'],['backpack','Backpacks'],['accessory','Accessories'],['consumable','Consumables'],['material','Materials']];
+ return `<section class="panel-section"><h3>Equipped gear</h3><div class="equipment-grid">${Object.entries(p.equipment).map(([slot,item])=>`<section class="equipment-slot"><h4>${slot==='offhand'?'Off-hand':label(slot)}</h4>${item?itemRow(item,`<button class="btn" onclick="unequip('${slot}')">Unequip</button>`):'<p class="help-text">Empty</p>'}</section>`).join('')}</div>
+ <div class="item-row"><div><strong>Potion belt · ${p.potions}/${BALANCE.potionSlots}</strong><small>Healing Potions · 30% Max HP</small></div><div class="item-actions"><button class="btn" onclick="stowPotion()" ${p.potions<1||p.inventory.length>=p.backpackSlots?'disabled':''}>Store</button><button class="btn" onclick="drinkOutsideCombat()" ${p.potions<1||p.hp>=p.maxHp?'disabled':''}>Drink</button></div></div></section>
+ <section class="panel-section"><h3>Carried items · ${p.inventory.length}/${p.backpackSlots} slots</h3><p class="help-text">${escapeHtml(p.equipment.backpack?.name||'No backpack')} · 2 base + ${p.backpackSlots-2} gear slots · Materials stack to ${BALANCE.materialStack}.</p>${groups.map(([slot,title])=>{const items=p.inventory.filter(item=>(item.slot||item.kind)===slot).sort((a,b)=>(a.type||'').localeCompare(b.type||'')||(a.minFloor||0)-(b.minFloor||0)||a.name.localeCompare(b.name));return items.length?`<section class="inventory-group"><h4>${title} · ${items.length}</h4>${items.map(item=>`<div class="inventory-entry">${itemRow(item,`${item.slot?`<button class="btn" onclick="equip(${item.uid})">${item.id==='potion'?'Move to belt':'Equip'}</button>`:''}<button class="btn" onclick="discardItem(${item.uid})">Discard</button>`)}${equipmentComparison(item,p)}</div>`).join('')}</section>`:'';}).join('')||'<p class="help-text">Your backpack is empty.</p>'}</section>`;
 }
 function equip(uid){if(gameState.inCombat)return;
  const p=gameState.player;if(gameState.panel!=='inventory')return;const index=p.inventory.findIndex(x=>x.uid===uid),item=p.inventory[index];if(!item?.slot)return;
  if(item.id==='potion'){if(p.potions>=BALANCE.potionSlots){renderPanel('Potion belt is full.');return;}p.potions++;p.inventory.splice(index,1);}
  else {
    const preview=structuredClone(p),old=p.equipment[item.slot];preview.equipment[item.slot]=item;recalculate(preview);
+   if(p.equippedSkills.length>preview.skillSlots){renderPanel('Unslot an ability in Talents & Skills before removing this weapon.');return;}
    if(p.inventory.length-1+(old?1:0)>preview.backpackSlots){renderPanel('Make room before equipping a smaller backpack.');return;}
    p.inventory.splice(index,1);p.equipment[item.slot]=item;if(old)p.inventory.push(old);recalculate(p);
  }
@@ -78,6 +96,7 @@ function equip(uid){if(gameState.inCombat)return;
 function unequip(slot){if(gameState.inCombat)return;
  const p=gameState.player;if(gameState.panel!=='inventory'||!p.equipment[slot])return;
  const old=p.equipment[slot],preview=structuredClone(p);preview.equipment[slot]=null;recalculate(preview);
+ if(p.equippedSkills.length>preview.skillSlots){renderPanel('Unslot an ability in Talents & Skills before removing this weapon.');return;}
  if(p.inventory.length+1>preview.backpackSlots){renderPanel('Not enough backpack space to unequip.');return;}
  p.equipment[slot]=null;recalculate(p);p.inventory.push(old);renderUI();renderPanel();
 }
@@ -96,7 +115,8 @@ function addLoot(item){
  }
  if(p.inventory.length>=p.backpackSlots)return false;p.inventory.push(item);return true;
 }
-function randomEquipment(){const ids=Object.keys(ITEMS).filter(id=>ITEMS[id].slot&&ITEMS[id].slot!=='consumable');return createItem(ids[rand(0,ids.length-1)]);}
+function equipmentPool(floor=gameState.floor){return Object.keys(ITEMS).filter(id=>ITEMS[id].slot&&ITEMS[id].slot!=='consumable'&&ITEMS[id].minFloor<=floor);}
+function randomEquipment(){const ids=equipmentPool();return createItem(ids[rand(0,ids.length-1)]);}
 function grantLoot(source='treasure'){
  const pool=source==='treasure'?{materials:['scrap','leather','cloth','ore','residue','core'],minQuantity:1,maxQuantity:3,equipmentChance:1,potionChance:1}:LOOT[source];
  if(!pool)throw Error('Missing loot pool: '+source);

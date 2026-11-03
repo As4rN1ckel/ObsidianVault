@@ -1,0 +1,100 @@
+{
+  "leatherJerkin": {
+    "name": "Leather Jerkin",
+    "slot": "armor",
+    "type": "heavy",
+    "minFloor": 2,
+    "price": 26,
+    "flat": {
+      "defense": 2
+    }
+  },
+  "paddedGambeson": {
+    "name": "Padded Gambeson",
+    "slot": "armor",
+    "type": "heavy",
+    "minFloor": 5,
+    "price": 38,
+    "flat": {
+      "defense": 3,
+      "vitality": 1
+    }
+  },
+  "chainmailHauberk": {
+    "name": "Chainmail Hauberk",
+    "slot": "armor",
+    "type": "heavy",
+    "minFloor": 9,
+    "price": 54,
+    "flat": {
+      "defense": 5,
+      "speed": -1
+    }
+  },
+  "apprenticeLinenRobe": {
+    "name": "Apprentice Linen Robe",
+    "slot": "armor",
+    "type": "robe",
+    "minFloor": 2,
+    "price": 26,
+    "flat": {
+      "defense": 1,
+      "intellect": 1
+    }
+  },
+  "scholarsTravelCloak": {
+    "name": "Scholar's Travel Cloak",
+    "slot": "armor",
+    "type": "robe",
+    "minFloor": 5,
+    "price": 38,
+    "flat": {
+      "defense": 2,
+      "maxMana": 4
+    }
+  },
+  "reinforcedCottonRobe": {
+    "name": "Reinforced Cotton Robe",
+    "slot": "armor",
+    "type": "robe",
+    "minFloor": 9,
+    "price": 54,
+    "flat": {
+      "defense": 3,
+      "intellect": 2
+    }
+  },
+  "travelersVest": {
+    "name": "Traveler's Vest",
+    "slot": "armor",
+    "type": "light",
+    "minFloor": 2,
+    "price": 26,
+    "flat": {
+      "defense": 1,
+      "agility": 1
+    }
+  },
+  "thiefsCoat": {
+    "name": "Thief's Coat",
+    "slot": "armor",
+    "type": "light",
+    "minFloor": 5,
+    "price": 38,
+    "flat": {
+      "defense": 2,
+      "agility": 2
+    }
+  },
+  "paddedTunic": {
+    "name": "Padded Tunic",
+    "slot": "armor",
+    "type": "light",
+    "minFloor": 9,
+    "price": 54,
+    "flat": {
+      "defense": 3,
+      "vitality": 1
+    }
+  }
+}
